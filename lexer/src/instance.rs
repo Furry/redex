@@ -1,15 +1,19 @@
 pub mod collector;
 
-use std::collections::HashMap;
+use self::collector::{Collector, Token};
 
 pub struct Instance {
-    pub rules: HashMap<String, Vec<String>>
+    collector: Collector
 }
 
 impl Instance {
     pub fn new() -> Instance {
         Instance {
-            rules: HashMap::new()
+            collector: Collector {}
         }
+    }
+
+    pub fn tokenize(&self, input: String) -> Vec<Token> {
+        self.collector.tokenize(input)
     }
 }
