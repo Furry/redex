@@ -11,7 +11,7 @@ lazy_static::lazy_static! {
         (Token::OpenBracket, Regex::new(r"^\[").unwrap()),
         (Token::CloseBracket, Regex::new(r"^\]").unwrap()),
         (Token::Number, Regex::new(r"^[0-9]+\.?[0-9]?+").unwrap()),
-        (Token::String, Regex::new("([\"'])(?:\\\\1|.)*?\\1").unwrap()),
+        (Token::String, Regex::new(r#""[^"]+?""#).unwrap()),
         (Token::Comment, Regex::new(r"//*+").unwrap()),
         (Token::Other, Regex::new(r"^[\s\S]").unwrap())
     ];
