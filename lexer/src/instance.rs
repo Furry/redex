@@ -1,6 +1,6 @@
 pub mod collector;
 
-use self::collector::{Collector, Token};
+use self::collector::{Collector, Token, TokenTuple};
 
 pub struct Instance {
     collector: Collector
@@ -13,7 +13,7 @@ impl Instance {
         }
     }
 
-    pub fn tokenize(&self, input: String) -> Vec<Token> {
+    pub fn tokenize(&self, input: String) -> Vec<TokenTuple> {
         self.collector.tokenize(input)
     }
 }

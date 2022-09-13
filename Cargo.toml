@@ -4,3 +4,7 @@ members = [
     "parser",
     "redex"
 ]
+
+default-members = [
+    "redex"
+]

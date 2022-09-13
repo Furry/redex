@@ -1,10 +1,14 @@
 pub mod modules;
-
-use lexer::instance::Instance;
-use regex::Regex;
+#[cfg(test)]
+pub mod tests;
 
 fn main() {
-    let code = "3 + 4";
+    let code = r#"
+let x = 53 - (64 + 22) + 35221 * 635242;
+let potato = "delicious~" // yum yum;
+"#;
+    // let code = "53 - (64 + 22) + 35221 * 635242 + \"hewwo~ uwu~\"";
     let mut ctx = modules::context::Context::new();
-    ctx.lowlevel.lex(code)
+    let r = ctx.lowlevel.lex(code);
+    println!("{:?}", r);
 }
