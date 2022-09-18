@@ -1,3 +1,5 @@
+#![feature(generators, generator_trait)]
+
 #[macro_use]
 use lazy_static;
 

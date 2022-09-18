@@ -1,14 +1,27 @@
+#![feature(generator_trait)]
+use std::{ops::{Generator, GeneratorState}, pin::Pin};
+
 pub mod modules;
 #[cfg(test)]
 pub mod tests;
 
 fn main() {
     let code = r#"
-let x = 53 - (64 + 22) + 35221 * 635242;
+let x = 53 - (64 + 22) + 35221 * 635.242;
 let potato = "delicious~" // yum yum;
 "#;
     // let code = "53 - (64 + 22) + 35221 * 635242 + \"hewwo~ uwu~\"";
     let mut ctx = modules::context::Context::new();
-    let r = ctx.lowlevel.lex(code);
-    println!("{:?}", r);
+    let mut r = ctx.lowlevel.lexer.generator(code);
+
+    // Iterate over the generator
+    // let x = Pin::new(&mut r).resume(());
+    // while let GeneratorState::Yielded(ref token) = x {
+    //     println!("{:?}", token);
+    //     let x = Pin::new(&mut r).resume(());
+    // }
+    let x = Pin::new(&mut r).resume(());
+    let y = Pin::new(&mut r).resume(());
+
+    println!("{:?}", y);
 }
