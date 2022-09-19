@@ -6,21 +6,19 @@ pub mod modules;
 pub mod tests;
 
 fn main() {
-    let code = r#"
-let x = 53 - (64 + 22) + 35221 * 635.242;
-let potato = "delicious~" // yum yum;
-"#;
+    let code = r#"5 + 7"#;
     // let code = "53 - (64 + 22) + 35221 * 635242 + \"hewwo~ uwu~\"";
     let mut ctx = modules::context::Context::new();
-    let mut r = ctx.lowlevel.lexer.generator(code);
+    let r = ctx.lowlevel.lexer.generator(code);
+    ctx.lowlevel.parse(r);
 
     // Iterate over the generator
-    loop {
-        match Pin::new(&mut r).resume(()) {
-            GeneratorState::Yielded(value) => {
-                println!("{:?}", value);
-            },
-            GeneratorState::Complete(_) => break
-        }
-    }
+    // loop {
+    //     match Pin::new(&mut r).resume(()) {
+    //         GeneratorState::Yielded(value) => {
+    //             println!("{:?}", value);
+    //         },
+    //         GeneratorState::Complete(_) => break
+    //     }
+    // }
 }
