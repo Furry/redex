@@ -4,7 +4,8 @@ use std::ops::Generator;
 use std::pin::Pin;
 
 lazy_static::lazy_static! {
-    static ref MATCHES: [(Token, Regex); 12] = [
+    static ref MATCHES: [(Token, Regex); 13] = [
+        (Token::EndOfLine, Regex::new(r"^(?:(?:\r?\n)|;)").unwrap()),
         (Token::Whitespace, Regex::new(r"^\s+").unwrap()),
         (Token::Identifier, Regex::new(r"^[a-zA-Z_]+").unwrap()),
         (Token::OpenParentheses, Regex::new(r"^\(").unwrap()),
@@ -33,6 +34,7 @@ pub enum Token {
     Number,
     String,
     Comment,
+    EndOfLine,
     Other
 }
 

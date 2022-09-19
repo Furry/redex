@@ -6,7 +6,7 @@ pub mod modules;
 pub mod tests;
 
 fn main() {
-    let code = r#"5 + 7"#;
+    let code = r#"5 + 7;"#;
     // let code = "53 - (64 + 22) + 35221 * 635242 + \"hewwo~ uwu~\"";
     let mut ctx = modules::context::Context::new();
     let r = ctx.lowlevel.lexer.generator(code);

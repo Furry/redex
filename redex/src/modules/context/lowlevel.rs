@@ -12,8 +12,7 @@ impl LowLevel {
         }
     }
 
-    pub fn parse(&mut self, input: TokenGenerator) -> () {
-        let mut ast = parser::modules::AST::new(input);
-        ast.parse();
+    pub fn parse(&mut self, generator: TokenGenerator) -> () {
+        parser::Parser::new(generator).parse();
     }
 }
