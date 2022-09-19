@@ -4,7 +4,7 @@ use std::ops::Generator;
 use std::pin::Pin;
 
 lazy_static::lazy_static! {
-    pub static ref MATCHES: [(Token, Regex); 12] = [
+    static ref MATCHES: [(Token, Regex); 12] = [
         (Token::Whitespace, Regex::new(r"^\s+").unwrap()),
         (Token::Identifier, Regex::new(r"^[a-zA-Z_]+").unwrap()),
         (Token::OpenParentheses, Regex::new(r"^\(").unwrap()),
@@ -59,30 +59,38 @@ impl Collector {
         for (token, regex) in MATCHES.iter() {
             if regex.is_match(&input[index..]) {
                 let captures = regex.captures(&input[index..]).unwrap();
-                let start = captures.get(0).unwrap().start();
-                // let end = captures.get(0).unwrap().end();
                 let value = captures.get(0).unwrap().as_str().to_string();
-                return (*token, value.clone(), start, value.len());
+                return (*token, value.clone(), index, value.len());
             }
         }
         Err("No match found").unwrap()
     }
-}
 
-impl Collector {
+    /// Given an inputed string, tokenize it and return a generator that yields tokens until the end of the string.
+    /// # Arguments
+    /// * `input` - The input string to tokenize.
+    /// # Examples
+    /// ```
+    /// use lexer::instance::collector::{ Token, TokenTuple, Collector };
+    /// let mut collector = Collector {};
+    /// let input = "2 + 2";
+    /// let mut generator = collector.generator(input);
+    /// let (token, value, index, length) = generator.as_mut().resume(());
+    /// assert_eq!(token, Token::Number);
+    /// ```
     pub(crate) fn tokenize<S: Into<String>>(input: S) -> TokenGenerator {
         let input: String = input.into();
-        let mut index: Pin<Box<usize>> = Box::pin(0);
-        
+        let mut index: usize = 0;
         return Box::pin(move || {
-
-            if *index != input.len().try_into().unwrap() {
-                let token = Collector::which(input.clone(), *index);
-                *index += token.2 + token.3;
-                println!("DONE!");
-                yield token;
-            } else {
-                return;
+            loop {
+                if index != input.len().try_into().unwrap() {
+                    let token = Collector::which(input.clone(), index);
+                    index += token.3;
+                    println!("DONE!");
+                    yield token;
+                } else {
+                    return;
+                }
             }
         });
     }

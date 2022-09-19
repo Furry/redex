@@ -15,13 +15,12 @@ let potato = "delicious~" // yum yum;
     let mut r = ctx.lowlevel.lexer.generator(code);
 
     // Iterate over the generator
-    // let x = Pin::new(&mut r).resume(());
-    // while let GeneratorState::Yielded(ref token) = x {
-    //     println!("{:?}", token);
-    //     let x = Pin::new(&mut r).resume(());
-    // }
-    let x = Pin::new(&mut r).resume(());
-    let y = Pin::new(&mut r).resume(());
-
-    println!("{:?}", y);
+    loop {
+        match Pin::new(&mut r).resume(()) {
+            GeneratorState::Yielded(value) => {
+                println!("{:?}", value);
+            },
+            GeneratorState::Complete(_) => break
+        }
+    }
 }
