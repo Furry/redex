@@ -20,7 +20,7 @@ lazy_static::lazy_static! {
     ];
 }
 
-#[derive(Debug, PartialEq, Clone, Copy, Display, EnumIter)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum Token {
     Whitespace,
     Identifier,
@@ -86,7 +86,6 @@ impl Collector {
                 if index != input.len().try_into().unwrap() {
                     let token = Collector::which(input.clone(), index);
                     index += token.3;
-                    println!("DONE!");
                     yield token;
                 } else {
                     return;
