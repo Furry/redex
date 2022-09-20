@@ -1,9 +1,12 @@
 #![feature(generator_trait)]
+#![feature(trait_alias)]
 
-use std::{ops::{Generator, GeneratorState}, pin::Pin};
+use std::{ops::{Generator, GeneratorState}, pin::Pin, borrow::Cow};
 
 use lexer::instance::collector::{TokenGenerator, TokenTuple, Token};
-use structures::Branchable;
+use modules::Branch;
+use structures::Operation;
+use structures::{Branchable, MaybeValue, BranchValue};
 
 pub mod modules;
 pub mod structures;
@@ -106,12 +109,56 @@ impl Parser {
                             .into_iter()
                             .filter(|p| p.0 != Token::Whitespace)
                             .collect::<Vec<TokenTuple>>();
-                        println!("{:?}", f);
-
+                        walk_expression(token, f);
                     }
                 },
                 _ => ()
             }
         }
     }
+}
+
+fn walk_expression(left: TokenTuple, right: Vec<TokenTuple>) -> () {
+    // Construct a tree recursively from the right side..
+    // let mut stack: Vec<Branch> = Vec::new();
+    let mut index = 0;
+    
+    let mut operation: Operation = Operation::test(&left);
+    if operation == Operation::Unknown {
+        if let Some(value) = right.get(index) {
+            operation = Operation::test(&value);
+        }
+        if operation == Operation::Unknown {
+            panic!("Invalid right hand expression!");
+        }
+    }
+
+    let branch = &Branch::new(operation, left.1, None);
+
+    loop {
+        if let Some(value) = right.get(index) {
+            let operation = Operation::test(&value);
+            if operation == Operation::Unknown {
+                index += 1;
+                continue;
+            } else {
+                let new = Some(Box::new(Branch::new(operation, value.clone().1, None)));
+                // Iterate over the tree and find the last branch.
+                let mut current = branch;
+                loop {
+                    if let Some(value) = current.right.as_ref() {
+                        current = value;
+                    } else {
+                        current.right = new;
+                        break;
+                    }
+                }
+                index += 1;
+            }
+        } else {
+            break;
+        }
+    }
+
+    // println!("{:?}", branch);   
 }

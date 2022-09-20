@@ -1,7 +1,5 @@
 pub mod lowlevel;
 
-use parser::modules::AST;
-
 use self::lowlevel::LowLevel;
 
 use super::datatypes::Value;
@@ -15,9 +13,5 @@ impl Context {
         Self {
             lowlevel: LowLevel::new()
         }
-    }
-
-    pub async fn evaluate(ast: &AST) -> Value {
-        todo!()
     }
 }
