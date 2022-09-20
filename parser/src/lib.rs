@@ -133,7 +133,7 @@ fn walk_expression(left: TokenTuple, right: Vec<TokenTuple>) -> () {
         }
     }
 
-    let branch = &Branch::new(operation, left.1, None);
+    let branch = &mut Branch::new(operation, left.1, None);
 
     loop {
         if let Some(value) = right.get(index) {
@@ -144,21 +144,21 @@ fn walk_expression(left: TokenTuple, right: Vec<TokenTuple>) -> () {
             } else {
                 let new = Some(Box::new(Branch::new(operation, value.clone().1, None)));
                 // Iterate over the tree and find the last branch.
-                let mut current = branch;
+                let mut current = &mut *branch;
                 loop {
-                    if let Some(value) = current.right.as_ref() {
+                    if let Some(ref mut value) = current.right {
                         current = value;
                     } else {
                         current.right = new;
                         break;
                     }
+                    index += 1;
                 }
-                index += 1;
             }
         } else {
             break;
         }
     }
 
-    // println!("{:?}", branch);   
+    println!("{:?}", branch);   
 }
