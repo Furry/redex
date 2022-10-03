@@ -5,7 +5,7 @@ use std::{ops::{Generator, GeneratorState}, pin::Pin, borrow::Cow};
 
 use lexer::instance::collector::{TokenGenerator, TokenTuple, Token};
 use modules::Branch;
-use structures::Operation;
+use structures::{Operation, math::construct_branch};
 use structures::{Branchable, MaybeValue, BranchValue};
 
 pub mod modules;
@@ -109,7 +109,12 @@ impl Parser {
                             .into_iter()
                             .filter(|p| p.0 != Token::Whitespace)
                             .collect::<Vec<TokenTuple>>();
-                        walk_expression(token, f);
+                        // walk_expression(token, f);
+                        // push token to the front of f
+                        let mut f = f;
+                        f.insert(0, token);
+                        let x = construct_branch(f);
+                        println!("{:?}", x);
                     }
                 },
                 _ => ()

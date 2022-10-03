@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use lexer::instance::collector::{TokenTuple, Token};
 
-use self::math::MathOperation;
+// use self::math::MathOperation;
 
 pub mod math;
 
@@ -16,7 +16,8 @@ pub enum Operation {
     Subtraction,
     Multiplication,
     Division,
-    Unknown
+    Unknown,
+    Pass
 }
 
 impl Operation {
