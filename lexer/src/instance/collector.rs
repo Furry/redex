@@ -1,6 +1,6 @@
 use regex::Regex;
 use strum::{ EnumIter, Display };
-use std::ops::Generator;
+use std::ops::{Generator, GeneratorState};
 use std::pin::Pin;
 
 lazy_static::lazy_static! {
@@ -95,4 +95,19 @@ impl Collector {
             }
         });
     }
+
+    pub fn vec(mut generator: TokenGenerator) -> Vec<TokenTuple> {
+        let mut vec: Vec<TokenTuple> = Vec::new();
+        loop {
+            match Pin::new(&mut generator).resume(()) {
+                GeneratorState::Yielded(value) => {
+                    vec.push(value);
+                },
+                GeneratorState::Complete(_) => break
+            }
+        }
+
+        vec
+    }
+
 }

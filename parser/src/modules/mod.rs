@@ -26,7 +26,7 @@ impl Branch {
         loop {
             match branch.right {
                 Some(ref right) => branch = right,
-                None => return Some(branch)
+                None => return Some(&Box::new(branch))
             }
         }
     }
@@ -45,5 +45,12 @@ impl Branch {
         }
 
         branch.right = new;
+    }
+
+    pub fn take_right(&mut self) -> Option<Box<Branch>> {
+        // Traverse all the way down the right side of the tree to get to the bottom. Set the right side of the node to the new branch.
+        let right = self.get_right();
+        self.set_right(None);
+        right.map(|branch| Box::new(branch.clone()))
     }
 }
