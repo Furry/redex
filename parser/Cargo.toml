@@ -7,4 +7,7 @@ edition = "2021"
 
 [dependencies]
 derive-new = "0.5.9"
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+
 lexer = { path = "../lexer" }
