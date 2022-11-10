@@ -1,4 +1,5 @@
 use super::processor::Processor;
+use lexer::instance::collector::TokenGenerator;
 use serde::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -17,7 +18,7 @@ pub enum LiteralType {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct ExpressionLiteral {
+pub struct LiteralExpression {
     pub meta: ExpressionMeta,
     pub raw: String,
     pub which: LiteralType
@@ -43,9 +44,16 @@ pub struct MathExpression {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct Program {
+    pub meta: ExpressionMeta,
+    pub children: Vec<Expression>
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub enum Expression {
-    Literal(ExpressionLiteral),
-    Math(MathExpression)
+    Literal(LiteralExpression),
+    Math(MathExpression),
+    Program
 }
 
 pub struct AST {
@@ -53,10 +61,6 @@ pub struct AST {
 }
 
 impl AST {
-    pub fn new() -> Self {
-        Self {
-            processor: Processor::new()
-        }
-    }
+    
 }
 
