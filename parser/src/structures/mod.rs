@@ -1,20 +1,24 @@
 use std::fmt::Debug;
 
-use lexer::instance::collector::{TokenTuple, Token};
-
-use self::math::MathOperation;
+use lexer::{instance::collector::{TokenTuple, Token}, strum::EnumProperty};
 
 pub mod math;
-
+pub mod AST;
 pub trait BranchValue: Branchable + MaybeValue + Debug {}
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, EnumProperty)]
 pub enum Operation {
+    #[strum(props(Key = "let"))]
     Define,
+    #[strum(props(Key = "="))]
     Assign,
+    #[strum(props(Key = "+"))]
     Addition,
+    #[strum(props(Key = "-"))]
     Subtraction,
+    #[strum(props(Key = "*"))]
     Multiplication,
+    #[strum(props(Key = "/"))]
     Division,
     Unknown
 }

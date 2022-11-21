@@ -4,7 +4,7 @@ use lexer::instance::collector::{TokenGenerator, Token, TokenTuple};
 
 use crate::structures::{BranchValue, Branchable, MaybeValue, Operation};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Branch {
     pub operation: Operation,
     pub left: String,
