@@ -58,6 +58,8 @@ fn main() {
         which: ast::MathType::Add
     });
 
+    println!("{}", serde_json::to_string(&x).unwrap());
+
     LowLevel::new().process(&"5 + (4 * 3)".to_string())
     // let mut gen = lowlevel::LowLevel::new().lexer.generator(statement);
 

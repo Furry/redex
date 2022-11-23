@@ -67,12 +67,9 @@ version = "0.1.0"
 dependencies = [
  "derive-new",
  "lexer",
-<<<<<<< HEAD
- "strum",
-=======
  "serde",
  "serde_json",
->>>>>>> 19df7d27424dc0fe0a3de0029e5bc640c02d9a14
+ "strum",
 ]
 
 [[package]]

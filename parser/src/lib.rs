@@ -1,11 +1,9 @@
 #![feature(generator_trait)]
-<<<<<<< HEAD
 #![feature(trait_alias)]
 
 use std::{ops::{Generator, GeneratorState}, pin::Pin, borrow::Cow};
 
 use lexer::{instance::collector::{TokenGenerator, TokenTuple, Token}, strum::EnumProperty};
-use modules::Branch;
 use structures::{Operation, AST::AST };
 use structures::{Branchable, MaybeValue, BranchValue};
 
@@ -116,104 +114,32 @@ enum HandlingState {
 
 // To handle outwards facing functions.
 impl Parser {
-    pub fn parse_dep(&mut self) {
-        let mut handling: HandlingState = HandlingState::Idle;
+    // pub fn parse_dep(&mut self) {
+    //     let mut handling: HandlingState = HandlingState::Idle;
 
-        while let Some(token) = self.next() {
-            match token.0 {
-                Token::Number => {
-                    if handling == HandlingState::Idle {
-                        handling = HandlingState::Expression;
-                        let f = self.until(Token::EndOfLine)
-                            .into_iter()
-                            .filter(|p| p.0 != Token::Whitespace)
-                            .collect::<Vec<TokenTuple>>();
-                        walk_expression(token, f);
-                    }
-                },
-                _ => ()
-            }
-        }
-    }
-
-    pub fn parse(&mut self) {
-        let mut root = AST::new();
-
-
-        while let Some(token) = self.next() {
-        }
-    }
-}
-
-fn walk_expression(left: TokenTuple, right: Vec<TokenTuple>) -> Box<Branch> {
-    // // Construct a tree recursively from the right side..
-    // // let mut stack: Vec<Branch> = Vec::new();
-    // let mut index = 0;
-    
-    // let mut operation: Operation = Operation::test(&left);
-    // if operation == Operation::Unknown {
-    //     if let Some(value) = right.get(index) {
-    //         operation = Operation::test(&value);
-    //     }
-    //     if operation == Operation::Unknown {
-    //         panic!("Invalid right hand expression!");
-    //     }
-    // }
-
-    // let branch = &mut Branch::new(operation, left.1, None);
-    // let mut new: Option<Box<Branch>> = None;
-    // loop {
-    //     if let Some(value) = right.get(index) {
-    //         index += 1;
-    //         let operation = Operation::test(&value);
-    //         if operation == Operation::Unknown {
-    //             continue;
-    //         } else {
-    //             new = Some(Box::new(Branch::new(operation, value.clone().1, None)));
-    //             // Iterate over the tree and find the last branch.
-    //             let mut current = &mut *branch;
-    //             loop {
-    //                 if let Some(ref mut value) = current.right {
-    //                     current = value;
-    //                 } else {
-    //                     if (index + 1) == right.len() {
-    //                         let mut n = new.unwrap().clone();
-    //                         n.right = Some(Box::new(Branch::new(Operation::Unknown, right[index].clone().1, None)));
-    //                         current.right = Some(n);
-    //                     } else {
-    //                         current.right = new;
-    //                     }
-    //                     break;
+    //     while let Some(token) = self.next() {
+    //         match token.0 {
+    //             Token::Number => {
+    //                 if handling == HandlingState::Idle {
+    //                     handling = HandlingState::Expression;
+    //                     let f = self.until(Token::EndOfLine)
+    //                         .into_iter()
+    //                         .filter(|p| p.0 != Token::Whitespace)
+    //                         .collect::<Vec<TokenTuple>>();
+    //                     walk_expression(token, f);
     //                 }
-    //                 index += 1;
-    //             }
+    //             },
+    //             _ => ()
     //         }
-    //     } else {
-    //         break;
     //     }
     // }
 
-    let mut index = 0;
-    let mut operation: Operation = Operation::test(&left);
-    if operation == Operation::Unknown {
-        if let Some(value) = right.get(index) {
-            operation = Operation::test(&value);
-            index += 1;
-        }
-        if operation == Operation::Unknown {
-            panic!("Invalid right hand expression!");
-        }
-    }
+    // pub fn parse(&mut self) {
+    //     let mut root = AST::new();
 
-    // println!("Vec: {:?}", right);
-    // println!("Operation: {:?}", right.until_str(operation.get_str("Key").unwrap()));
 
-    // loop {
-        
+    //     while let Some(token) = self.next() {
+            
+    //     }
     // }
-
-    todo!()
 }
-=======
-pub mod modules;
->>>>>>> 19df7d27424dc0fe0a3de0029e5bc640c02d9a14
