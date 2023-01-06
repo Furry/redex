@@ -1,0 +1,10 @@
+[package]
+name = "redex"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# Specify the ./parser directory as a dependency
+parser = { path = "./parser" }
