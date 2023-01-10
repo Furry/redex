@@ -1,8 +1,17 @@
-use parser::types::token::{ parse_tokens, test};
+use parser::{ parser::Parser, lexer };
 
 fn main() {
     let input = r#"let x = 33"#;
-    let tokens = parse_tokens(input);
-    println!("{:?}", tokens)
+    let input2 = "33 + 4 * 67";
+    let tokens = lexer::parse_tokens(input2);
+    let mut parser = Parser::new(tokens);
+
+    dbg!(parser.next());
     // test();
 }
+
+/*
+{
+    
+}
+*/

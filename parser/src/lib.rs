@@ -1,5 +1,8 @@
+use std::collections::VecDeque;
+
+use types::{token::{Token, TokenType}, ast::Node};
+
 extern crate strum;
-#[macro_use]
 extern crate strum_macros;
 
 pub mod parser;
