@@ -13,7 +13,6 @@ pub fn parse_tokens(input: &str) -> Vec<Token> {
     while input.len() > 0 {
         let mut matched = false;
         for token_type in TokenType::iter() {
-            println!("Token type: {:?}", token_type);
             let regex = token_type.get_str("regex").unwrap();
             let re = regex::Regex::new(regex).unwrap();
             if let Some(captures) = re.captures(input) {

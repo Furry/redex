@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::types::{token::Token, ast::{Node, MathNode}};
+use crate::types::{token::{Token, TokenType}, ast::{Expression, LiteralExpression, ExpressionMeta, LiteralType, GroupExpression, BlockExpression, MathExpression, MathType, ProgramBody}};
 
 pub struct Parser {
     pub input: VecDeque<Token>,
@@ -11,52 +11,203 @@ pub struct Parser {
 
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
-        return Parser {
+        Parser {
             len: tokens.len(),
             input: VecDeque::from(tokens),
-            pos: 0,
+            pos: 0
         }
     }
 }
 
+// Private functionality methods
 impl Parser {
-    pub fn parse(&mut self, start: usize, stop: usize) {
-        // Create a new slice of input with the start and stop positions.
-        let mut input = self.input.clone();
-        input.drain(..start);
-        input.drain(stop..);
+    fn scope(&mut self, tracked: TokenType) -> Vec<Token> {
+        let mut depth = 1;
+        let mut tokens = Vec::new();
 
-        // Create our types
-        let mut nodes: VecDeque<Node> = VecDeque::new();
-        let mut hold: Option<Node> = None;
+        while let Some(token) = self.input.pop_front() {
+            // print it
+            println!("In group -> {:?}", token.clone());
+            if token.token_type == tracked {
+                depth += 1;
+            }
+            if token.token_type == tracked {
+                depth -= 1;
+            }
+            if depth == 0 {
+                break;
+            }
+            tokens.push(token);
+        }
 
-        while let Some(token) = input.pop_front() {
-            let kind = token.clone().token_type;
+        return tokens;
+    }
+}
 
-            if kind.is_math() {
-                let node = Node::Math(Node::into_math(&token));
-                if hold.is_some() {
-                    let mut hold = hold.unwrap();
-                    hold = Node::into_math(&token).left(hold);
-                    nodes.push_back(hold);
+impl Parser {
+}
+
+impl Parser {
+    pub fn next(&mut self) -> Option<Expression> {
+        loop {
+            let next_ = self.input.pop_front();
+            if next_.is_none() {
+                return None;
+            }
+            let next = next_.unwrap();
+            let kind = next.token_type.clone();
+            let k = match kind {
+                TokenType::StringLiteral  |
+                TokenType::IntegerLiteral |
+                TokenType::BooleanLiteral => {
+                    Expression::Literal(
+                        LiteralExpression {
+                            meta: ExpressionMeta {
+                                start: next.start,
+                                end: next.end
+                            },
+                            raw: next.literal.clone(),
+                            which: LiteralType::from(kind)
+                        }
+                    )
+                },
+
+                TokenType::Asterisk |
+                TokenType::Slash |
+                TokenType::Plus |
+                TokenType::Minus => {
+                    Expression::Math(
+                        MathExpression {
+                            meta: ExpressionMeta::new(next.start, next.end),
+                            which: MathType::from(kind),
+                            left: None,
+                            right: None
+                        }
+                    )
+                },
+
+                TokenType::LBrace => {
+                    let scope = self.scope(TokenType::LBrace);
+                    let mut parser = Parser::new(scope);
+                    let mut exprs = Vec::new();
+                    while let Some(expr) = parser.next() {
+                        exprs.push(expr);
+                    }
+                    Expression::Group(GroupExpression {
+                        meta: ExpressionMeta::new(next.start, next.end),
+                        children: exprs
+                    })
+                },
+
+                TokenType::LParen => {
+                    let scope = self.scope(TokenType::LParen);
+                    let mut parser = Parser::new(scope);
+                    let mut exprs = Vec::new();
+                    while let Some(expr) = parser.next() {
+                        exprs.push(expr);
+                    }
+                    Parser::parse_vec(exprs)
+                },
+                _ => Expression::Misc
+            };
+
+            if k != Expression::Misc {
+                return Some(k);
+            }
+        }
+    }
+
+    pub fn parse_vec(input: Vec<Expression>) -> Expression {
+        let mut hold: Option<Expression> = None;
+        let mut exprs: Vec<Expression> = Vec::new();
+
+        let start = input.get(0)
+            .unwrap()
+            .meta()
+            .start;
+
+        let end = input.get(input.len() - 1)
+            .unwrap()
+            .meta()
+            .end;
+
+        let mut input = input.into_iter();
+
+        // Get the start of the first and the end of the last
+
+        loop {
+            let expr = input.next();
+            if expr.is_none() {
+                if exprs.len() == 1 {
+                    return exprs.pop().unwrap();
                 } else {
-                    nodes.push_back(node);
+                    return Expression::Block(BlockExpression {
+                        meta: ExpressionMeta::new(start, end),
+                        children: exprs
+                    });
                 }
             }
 
-            if kind.is_literal() {
-                if hold.is_none() {
-                    hold = Some(Node::from::<Token>(token))
+            let expr = expr.unwrap();
+            match expr {
+                Expression::Math(mut math) => {
+                    if hold.is_none() {
+                        panic!("Expected expression before math operator");
+                    }
+                    math.left = Some(Box::new(hold.unwrap()));
+                    math.right = Some(Box::new(input.next().unwrap()));
+                    exprs.push(Expression::Math(math));
+                    hold = None;
+                },
+                _ => {
+                    hold = Some(expr);
                 }
             }
         }
     }
 
-    pub fn parse2(&mut self) {
-        
+    pub fn parse_all(&mut self) -> Expression {
+        let mut hold: Option<Expression> = None;
+        let mut exprs = Vec::new();
+
+        loop {
+            let expr = self.next();
+            if expr.is_none() {
+                if exprs.len() == 1 {
+                    return exprs.pop().unwrap();
+                } else {
+                    return Expression::Block(BlockExpression {
+                        meta: ExpressionMeta::new(self.pos, self.len),
+                        children: exprs
+                    });
+                }
+            }
+            
+            
+            let expr = expr.unwrap();
+            match expr {
+                Expression::Math(mut math) => {
+                    if hold.is_none() {
+                        panic!("Expected expression before math operator");
+                    }
+                    math.left = Some(Box::new(hold.unwrap()));
+                    math.right = Some(Box::new(self.next().unwrap()));
+                    exprs.push(Expression::Math(math));
+                    hold = None;
+                },
+                _ => {
+                    hold = Some(expr);
+                }
+            };
+        }
     }
 
-    pub fn next(&mut self) {
-        return self.parse(self.pos, self.input.len() - 1);
+    pub fn parse(&mut self) -> Expression {
+        return Expression::Program(
+            ProgramBody {
+                meta: ExpressionMeta::new(0, self.len),
+                children: vec![self.parse_all()]
+            }
+        )
     }
 }

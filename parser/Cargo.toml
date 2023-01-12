@@ -9,3 +9,4 @@ edition = "2021"
 regex = "1.7.0"
 strum = "0.24.1"
 strum_macros = "0.24.1"
+serde = { version = "1.0.152", features = ["derive"] }

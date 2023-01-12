@@ -1,77 +1,122 @@
-use super::token::{TokenType, Token};
+use serde::{ Serialize, Deserialize };
 
-pub enum LiteralKind { Integer, String, Boolean }
-pub struct LiteralNode {
-    pub value: String,
-    pub kind: LiteralKind
+use super::token::TokenType;
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
+pub struct ExpressionMeta {
+    pub start: usize,
+    pub end: usize
 }
 
-pub enum MathOperation { Add, Subtract, Multiply, Divide, Modulo, Exponent }
-pub struct MathNode {
-    pub left: Option<Box<Node>>,
-    pub right: Option<Box<Node>>,
-    pub operation: MathOperation
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub enum LiteralType {
+    String,
+    Integer,
+    Float,
+    Boolean
 }
 
-pub enum Node {
-    Literal(LiteralNode),
-    Math(MathNode)
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub struct LiteralExpression {
+    pub meta: ExpressionMeta,
+    pub raw: String,
+    pub which: LiteralType
 }
 
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub enum MathType {
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+    Modulo,
+    Power
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub struct MathExpression {
+    pub meta: ExpressionMeta,
+    pub left: Option<Box<Expression>>,
+    pub right: Option<Box<Expression>>,
+    pub which: MathType
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Program {
-    pub statements: Vec<Node>
+    pub meta: ExpressionMeta,
+    pub children: Vec<Expression>
 }
 
-impl Node {
-    pub fn from<T: Into<Token>>(token: Token) -> Node {
-        let token: Token = token.into();
-        let kind = token.token_type.clone();
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub struct GroupExpression {
+    pub meta: ExpressionMeta,
+    pub children: Vec<Expression>
+}
 
-        if kind.is_math() {
-            let operation = match kind {
-                TokenType::Plus => MathOperation::Add,
-                TokenType::Minus => MathOperation::Subtract,
-                TokenType::Asterisk => MathOperation::Multiply,
-                TokenType::Slash => MathOperation::Divide,
-                _ => panic!("Invalid math operation")
-            };
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub struct BlockExpression {
+    pub meta: ExpressionMeta,
+    pub children: Vec<Expression>
+}
 
-            Node::Math(MathNode {
-                left: None,
-                right: None,
-                operation
-            })
-        } else if kind.is_literal() {
-            let kind = match kind {
-                TokenType::IntegerLiteral => LiteralKind::Integer,
-                TokenType::StringLiteral => LiteralKind::String,
-                TokenType::BooleanLiteral => LiteralKind::Boolean,
-                _ => panic!("Invalid literal kind")
-            };
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub struct ProgramBody {
+    pub meta: ExpressionMeta,
+    pub children: Vec<Expression>
+}
 
-            Node::Literal(LiteralNode {
-                value: token.literal,
-                kind
-            })
-        } else {
-            panic!("Invalid node type");
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+pub enum Expression {
+    Literal(LiteralExpression),
+    Math(MathExpression),
+    Group(GroupExpression),
+    Block(BlockExpression),
+    Program(ProgramBody),
+    Misc
+}
+
+impl LiteralType {
+    pub fn from(kind: TokenType) -> LiteralType {
+        match kind {
+            TokenType::StringLiteral => LiteralType::String,
+            TokenType::IntegerLiteral => LiteralType::Integer,
+            // TokenType::FloatLiteral => LiteralType::Float,
+            TokenType::BooleanLiteral => LiteralType::Boolean,
+            _ => panic!("Invalid literal type")
         }
     }
+}
 
-    pub fn into_math(token: &Token) -> MathNode {
-        let kind = token.token_type.clone();
-        let operation = match kind {
-            TokenType::Plus => MathOperation::Add,
-            TokenType::Minus => MathOperation::Subtract,
-            TokenType::Asterisk => MathOperation::Multiply,
-            TokenType::Slash => MathOperation::Divide,
-            _ => panic!("Invalid math operation")
-        };
+impl ExpressionMeta {
+    pub fn new(start: usize, end: usize) -> ExpressionMeta {
+        ExpressionMeta {
+            start,
+            end
+        }
+    }
+}
 
-        return MathNode {
-            left: None,
-            right: None,
-            operation
+impl MathType {
+    pub fn from(kind: TokenType) -> MathType {
+        match kind {
+            TokenType::Plus => MathType::Add,
+            TokenType::Minus => MathType::Subtract,
+            TokenType::Asterisk => MathType::Multiply,
+            TokenType::Slash => MathType::Divide,
+            _ => panic!("Invalid math type")
+        }
+    }
+}
+
+impl Expression {
+    pub fn meta(&self) -> ExpressionMeta {
+        match self {
+            Expression::Literal(literal) => literal.meta.clone(),
+            Expression::Math(math) => math.meta.clone(),
+            Expression::Group(group) => group.meta.clone(),
+            Expression::Block(block) => block.meta.clone(),
+            Expression::Program(program) => program.meta.clone(),
+            Expression::Misc => ExpressionMeta::new(0, 0)
         }
     }
 }

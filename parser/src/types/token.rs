@@ -11,7 +11,7 @@ pub struct Token {
     pub size: usize,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash, EnumProperty, EnumIter)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumProperty, EnumIter)]
 pub enum TokenType {
     // Keywords
     #[strum(props(regex = "^let"))]
