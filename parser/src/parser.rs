@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::{collections::VecDeque, borrow::Borrow};
 
 use crate::types::{token::{Token, TokenType}, ast::{Expression, LiteralExpression, ExpressionMeta, LiteralType, GroupExpression, BlockExpression, MathExpression, MathType, ProgramBody}};
 
@@ -26,12 +26,10 @@ impl Parser {
         let mut tokens = Vec::new();
 
         while let Some(token) = self.input.pop_front() {
-            // print it
-            println!("In group -> {:?}", token.clone());
             if token.token_type == tracked {
                 depth += 1;
             }
-            if token.token_type == tracked {
+            if token.token_type == tracked.get_closing().unwrap() {
                 depth -= 1;
             }
             if depth == 0 {
@@ -137,7 +135,12 @@ impl Parser {
 
         loop {
             let expr = input.next();
+            // dbg!(&expr); // Never hits on 44
             if expr.is_none() {
+                // If hold exists, push it
+                if hold.is_some() {
+                    exprs.push(hold.unwrap());
+                }
                 if exprs.len() == 1 {
                     return exprs.pop().unwrap();
                 } else {
@@ -149,10 +152,12 @@ impl Parser {
             }
 
             let expr = expr.unwrap();
-            match expr {
+            match expr.clone() {
                 Expression::Math(mut math) => {
                     if hold.is_none() {
-                        panic!("Expected expression before math operator");
+                        // panic!("Expected expression before math operator");
+                        hold = Some(expr.clone());
+                        continue;
                     }
                     math.left = Some(Box::new(hold.unwrap()));
                     math.right = Some(Box::new(input.next().unwrap()));
@@ -172,7 +177,12 @@ impl Parser {
 
         loop {
             let expr = self.next();
+            dbg!(&expr);
             if expr.is_none() {
+                // If hold is some, push it
+                if hold.is_some() {
+                    exprs.push(hold.unwrap());
+                }
                 if exprs.len() == 1 {
                     return exprs.pop().unwrap();
                 } else {
@@ -182,20 +192,25 @@ impl Parser {
                     });
                 }
             }
-            
-            
+
             let expr = expr.unwrap();
-            match expr {
+            match expr.clone() {
                 Expression::Math(mut math) => {
                     if hold.is_none() {
-                        panic!("Expected expression before math operator");
+                        // panic!("Expected expression before math operator");
+                        hold = Some(expr.clone());
+                        continue;
                     }
                     math.left = Some(Box::new(hold.unwrap()));
                     math.right = Some(Box::new(self.next().unwrap()));
-                    exprs.push(Expression::Math(math));
-                    hold = None;
+                    // exprspush(Expression::Math(math.clone()));
+                    hold = Some(Expression::Math(math));
+                    // exprs.push(Expression::Math(math));
                 },
                 _ => {
+                    if hold.is_some() {
+                        exprs.push(hold.unwrap());
+                    }
                     hold = Some(expr);
                 }
             };

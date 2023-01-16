@@ -8,7 +8,7 @@ pub struct ExpressionMeta {
     pub end: usize
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub enum LiteralType {
     String,
     Integer,
@@ -16,14 +16,14 @@ pub enum LiteralType {
     Boolean
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct LiteralExpression {
     pub meta: ExpressionMeta,
     pub raw: String,
     pub which: LiteralType
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub enum MathType {
     Add,
     Subtract,
@@ -33,7 +33,7 @@ pub enum MathType {
     Power
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct MathExpression {
     pub meta: ExpressionMeta,
     pub left: Option<Box<Expression>>,
@@ -47,25 +47,25 @@ pub struct Program {
     pub children: Vec<Expression>
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct GroupExpression {
     pub meta: ExpressionMeta,
     pub children: Vec<Expression>
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct BlockExpression {
     pub meta: ExpressionMeta,
     pub children: Vec<Expression>
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct ProgramBody {
     pub meta: ExpressionMeta,
     pub children: Vec<Expression>
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub enum Expression {
     Literal(LiteralExpression),
     Math(MathExpression),

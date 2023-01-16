@@ -97,6 +97,15 @@ impl TokenType {
             _ => false,
         }
     }
+
+    pub fn get_closing(&self) -> Option<TokenType> {
+        match self {
+            TokenType::LParen => Some(TokenType::RParen),
+            TokenType::LBrace => Some(TokenType::RBrace),
+            TokenType::LBracket => Some(TokenType::RBracket),
+            _ => None,
+        }
+    }
 }
 
 pub fn test() {
