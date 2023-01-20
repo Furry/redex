@@ -57,13 +57,11 @@ impl Parser {
             // Base case: If there's no more input, return None.
             let next_ = self.input.pop_front();
             if next_.is_none() {
-                println!("No more tokens to consume.");
                 return None;
             }
             let next = next_.unwrap();
             let kind = next.token_type.clone();
 
-            println!("Consuming token: {:?}", kind);
             // Match the type of token, and construct the appropriate expression.
             let k = match kind {
 
@@ -120,7 +118,38 @@ impl Parser {
                     while let Some(expr) = parser.next() {
                         exprs.push(expr);
                     }
-                    Parser::parse_vec(exprs)
+
+                    // Drain all commas from the expression list.
+                    exprs.retain(|expr| {
+                        if let Expression::Token(token) = expr {
+                            if token.token_type == TokenType::Comma {
+                                return false;
+                            }
+                        }
+                        true
+                    });
+
+                    // Check if there's only Identifiers
+                    let mut only_identifiers = true;
+                    for expr in exprs.clone() {
+                        if let Expression::Token(t) = expr {
+                            if t.token_type != TokenType::Identifier {
+                                only_identifiers = false;
+                            }
+                        } else {
+                            only_identifiers = false;
+                        }
+                    }
+
+                    // If there's only identifiers, this is a grouping.
+                    if only_identifiers {
+                        Expression::Group(GroupExpression {
+                            meta: ExpressionMeta::new(next.start, next.end),
+                            children: exprs
+                        })
+                    } else {
+                        Parser::parse_vec(exprs)
+                    }
                 },
 
                 // Let:

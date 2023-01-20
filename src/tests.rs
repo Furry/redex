@@ -5,7 +5,7 @@ use parser::{
 
 #[test]
 fn parse_function() {
-    let input = "fn myFunction() { return 55 }";
+    let input = "fn myFunction(input) { return 55 }";
     let tokens = lexer::parse_tokens(input);
     let mut parser = Parser::new(tokens);
 
