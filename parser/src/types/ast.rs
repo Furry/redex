@@ -86,6 +86,14 @@ pub struct AssignmentExpression {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
+pub struct ConditionalExpression {
+    pub meta: ExpressionMeta,
+    pub condition: Box<Expression>,
+    pub expression: Box<Expression>,
+    pub alternative: Option<Box<Expression>>
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub enum Expression {
     Literal(LiteralExpression),
     Assignment(AssignmentExpression),
@@ -95,6 +103,7 @@ pub enum Expression {
     Program(ProgramBody),
     Return(ReturnExpression),
     Token(Token),
+    Conditional(ConditionalExpression),
     Misc
 }
 
@@ -142,7 +151,15 @@ impl Expression {
             Expression::Assignment(assignment) => assignment.meta.clone(),
             Expression::Return(return_expr) => return_expr.meta.clone(),
             Expression::Token(token) => ExpressionMeta::new(token.start, token.end),
+            Expression::Conditional(conditional) => conditional.meta.clone(),
             Expression::Misc => ExpressionMeta::new(0, 1)
+        }
+    }
+
+    pub fn is(&self, kind: TokenType) -> bool {
+        match self {
+            Expression::Token(token) => token.token_type == kind,
+            _ => false
         }
     }
 }

@@ -1,7 +1,8 @@
 use std::{ collections::VecDeque };
 
-use crate::types::{token::{Token, TokenType}, ast::{Expression, LiteralExpression, ExpressionMeta, LiteralType, GroupExpression, BlockExpression, MathExpression, MathType, ProgramBody, AssignmentExpression, IdentifierExpression, ReturnExpression}};
+use crate::types::{token::{Token, TokenType}, ast::{Expression, LiteralExpression, ExpressionMeta, LiteralType, GroupExpression, BlockExpression, MathExpression, MathType, ProgramBody, AssignmentExpression, IdentifierExpression, ReturnExpression, ConditionalExpression}};
 
+#[derive(Debug)]
 pub struct Parser {
     pub input: VecDeque<Token>,
 
@@ -21,6 +22,7 @@ impl Parser {
 
 // Private functionality methods
 impl Parser {
+    // A utility function to collect tokens until a corresponding token is found, balancing successive occurances.
     fn scope(&mut self, tracked: TokenType) -> Vec<Token> {
         let mut depth = 1;
         let mut tokens = Vec::new();
@@ -43,18 +45,29 @@ impl Parser {
 }
 
 impl Parser {
-}
+    pub fn peek_next(&mut self) -> Option<Expression> {
+        // Copy self and perform a next() operation on the copy.
+        let mut copy = Parser::new(self.input.clone().into());
+        copy.next()
+    }
 
-impl Parser {
     pub fn next(&mut self) -> Option<Expression> {
+        // println!("Parsing next expression. {:?}", self.input);
         loop {
+            // Base case: If there's no more input, return None.
             let next_ = self.input.pop_front();
             if next_.is_none() {
+                println!("No more tokens to consume.");
                 return None;
             }
             let next = next_.unwrap();
             let kind = next.token_type.clone();
+
+            println!("Consuming token: {:?}", kind);
+            // Match the type of token, and construct the appropriate expression.
             let k = match kind {
+
+                // If it's a literal type, parse it into a literal expression.
                 TokenType::StringLiteral  |
                 TokenType::IntegerLiteral |
                 TokenType::BooleanLiteral => {
@@ -70,6 +83,7 @@ impl Parser {
                     )
                 },
 
+                // Consruct a new math expression with the operator as the type.
                 TokenType::Asterisk |
                 TokenType::Slash |
                 TokenType::Plus |
@@ -84,6 +98,7 @@ impl Parser {
                     )
                 },
 
+                // Construct a scope by finding the closing brace, parse it into an array of expressions, and construct a group from it.
                 TokenType::LBrace => {
                     let scope = self.scope(TokenType::LBrace);
                     let mut parser = Parser::new(scope);
@@ -97,6 +112,7 @@ impl Parser {
                     })
                 },
 
+                // Construct a scope by finding the closing parenthesis, then parse the scope.
                 TokenType::LParen => {
                     let scope = self.scope(TokenType::LParen);
                     let mut parser = Parser::new(scope);
@@ -105,8 +121,10 @@ impl Parser {
                         exprs.push(expr);
                     }
                     Parser::parse_vec(exprs)
-                }
+                },
 
+                // Let:
+                // Identifier -> Equals (Skip) -> Expression
                 TokenType::Let => {
                     let identifier_ = self.next();
                     if identifier_.is_none() {
@@ -129,8 +147,10 @@ impl Parser {
                             expression: Box::new(exp)
                         }
                     )
-                }
+                },
 
+                // Return:
+                // Identifer -> Expression (Optional)
                 TokenType::Return => {
                     let exp = self.next();
                     let mut end = next.end;
@@ -143,8 +163,11 @@ impl Parser {
                         meta: ExpressionMeta::new(next.start, end),
                         value: Box::new(exp)
                     })
-                }
+                },
 
+                // Fn (Function):
+                // Identifier -> Arguments (Group) -> Scope
+                // Basically, the scope is parsed into a program and then that program is assigned to an identifier using the AssignExpression
                 TokenType::Fn => {
                     let identifier_ = self.next();
                     if identifier_.is_none() {
@@ -165,7 +188,6 @@ impl Parser {
                     while let Some(expr) = parser.next() {
                         exprs.push(expr);
                     }
-                    // let body = Parser::parse_vec(exprs);
 
                     let mut scope_arguments: Vec<IdentifierExpression> = Vec::new();
                     match args.clone() {
@@ -202,13 +224,46 @@ impl Parser {
                             )
                         }
                     )   
-                }
-                
-                TokenType::Space => continue,
+                },
+
+                TokenType::If => {
+                    let condition = self.next()
+                        .unwrap_or_else(|| panic!("Expected condition after if"));
+
+                    let expression = self.next()
+                        .unwrap_or_else(|| panic!("Expected expression after if"));
+
+                    let mut alternative: Option<Box<Expression>> = None;
+                    if let Some(peek) = self.peek_next() {
+                        match peek {
+                            Expression::Token(token) => {
+                                if token.token_type == TokenType::Else {
+                                    self.next();
+                                    alternative = Some(Box::new(self.next().unwrap_or_else(|| panic!("Expected expression after else"))));
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+
+                    Expression::Conditional(
+                        ConditionalExpression {
+                            meta: ExpressionMeta::new(next.start, next.end),
+                            condition: Box::new(condition),
+                            expression: Box::new(expression),
+                            alternative
+                        }
+                    )
+                },
+
+                TokenType::Space |
+                TokenType::Newline => continue,
+
                 _ => Expression::Token(next),
             };
 
             if k != Expression::Misc {
+                // println!("Yielding {:?}", k.clone());
                 return Some(k);
             }
         }
@@ -240,7 +295,6 @@ impl Parser {
         let mut input = input.into_iter();
 
         // Get the start of the first and the end of the last
-
         loop {
             let expr = input.next();
             if expr.is_none() {
@@ -303,15 +357,12 @@ impl Parser {
             match expr.clone() {
                 Expression::Math(mut math) => {
                     if hold.is_none() {
-                        // panic!("Expected expression before math operator");
                         hold = Some(expr.clone());
                         continue;
                     }
                     math.left = Some(Box::new(hold.unwrap()));
                     math.right = Some(Box::new(self.next().unwrap()));
-                    // exprspush(Expression::Math(math.clone()));
                     hold = Some(Expression::Math(math));
-                    // exprs.push(Expression::Math(math));
                 },
                 _ => {
                     if hold.is_some() {

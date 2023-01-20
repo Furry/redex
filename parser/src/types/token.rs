@@ -117,10 +117,3 @@ impl TokenType {
         }
     }
 }
-
-pub fn test() {
-    let input = r#"browtfx = 55.6"#;
-    let re = regex::Regex::new(r#"^[a-zA-Z][\w\d]+"#).unwrap();
-    let captures = re.captures(input).unwrap();
-    println!("{:?}", captures);
-}
