@@ -1,8 +1,9 @@
 use strum::{IntoEnumIterator, EnumProperty};
 use strum_macros::{EnumIter, EnumProperty};
+use serde::{Serialize, Deserialize};
 use regex;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Token {
     pub token_type: TokenType,
     pub literal: String,
@@ -11,14 +12,20 @@ pub struct Token {
     pub size: usize,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumProperty, EnumIter)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, EnumProperty, EnumIter, Serialize, Deserialize)]
 pub enum TokenType {
     // Keywords
     #[strum(props(regex = "^let"))]
     Let,
     #[strum(props(regex = "^fn"))]
     Fn,
-    // Identifiers
+    #[strum(props(regex = "^if"))]
+    If,
+    #[strum(props(regex = "^else"))]
+    Else,
+    #[strum(props(regex = "^return"))]
+    Return,
+
     // This regex for ' and " /.*?'((?:\\\\|\\'|[^'])*+)'/"
     #[strum(props(regex = r#"(?:^'((?:\\\\|\\'|[^'])*)')|(?:^"((?:\\\\|\\"|[^"])*)")"#))]
     StringLiteral,
@@ -73,7 +80,10 @@ pub enum TokenType {
     #[strum(props(regex = r#"^[a-zA-Z][\w\d]*"#))]
     Identifier,
     #[strum(props(regex = r#"^ +"#))]
-    Space
+    Space,
+    // Whitespace
+    #[strum(props(regex = r#"^(?:\r\n|\r|\n)"#))]
+    Newline
 }
 
 impl TokenType {

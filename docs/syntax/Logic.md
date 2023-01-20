@@ -51,3 +51,11 @@ let x = (334 / 22) * 53; // 804.6363~
 let y = !1 // false
 let z = !0 // true
 ```
+
+<!-- Latex for recursive summation -->
+$\sum_{i=0}^{n} i = \frac{n(n+1)}{2}$
+<!-- in python -->
+```py
+def sum(n):
+    return n * (n + 1) / 2
+```

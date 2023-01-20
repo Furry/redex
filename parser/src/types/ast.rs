@@ -1,6 +1,6 @@
 use serde::{ Serialize, Deserialize };
 
-use super::token::TokenType;
+use super::token::{TokenType, Token};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct ExpressionMeta {
@@ -17,10 +17,22 @@ pub enum LiteralType {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
+pub struct ReturnExpression {
+    pub meta: ExpressionMeta,
+    pub value: Box<Option<Expression>>
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct LiteralExpression {
     pub meta: ExpressionMeta,
     pub raw: String,
     pub which: LiteralType
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
+pub struct IdentifierExpression {
+    pub meta: ExpressionMeta,
+    pub name: String
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
@@ -61,17 +73,28 @@ pub struct BlockExpression {
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct ProgramBody {
+    pub scope: Vec<IdentifierExpression>,
     pub meta: ExpressionMeta,
     pub children: Vec<Expression>
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
+pub struct AssignmentExpression {
+    pub meta: ExpressionMeta,
+    pub identifier: Box<Expression>,
+    pub expression: Box<Expression>
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub enum Expression {
     Literal(LiteralExpression),
+    Assignment(AssignmentExpression),
     Math(MathExpression),
     Group(GroupExpression),
     Block(BlockExpression),
     Program(ProgramBody),
+    Return(ReturnExpression),
+    Token(Token),
     Misc
 }
 
@@ -116,7 +139,10 @@ impl Expression {
             Expression::Group(group) => group.meta.clone(),
             Expression::Block(block) => block.meta.clone(),
             Expression::Program(program) => program.meta.clone(),
-            Expression::Misc => ExpressionMeta::new(0, 0)
+            Expression::Assignment(assignment) => assignment.meta.clone(),
+            Expression::Return(return_expr) => return_expr.meta.clone(),
+            Expression::Token(token) => ExpressionMeta::new(token.start, token.end),
+            Expression::Misc => ExpressionMeta::new(0, 1)
         }
     }
 }
