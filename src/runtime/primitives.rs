@@ -20,6 +20,7 @@ pub enum VariableType {
 pub enum VariableStorage {
     Integer(Integer),
     String(CompoundString),
+    Boolean(Bool),
 }
 
 #[derive(Debug, Clone, PartialEq)]

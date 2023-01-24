@@ -1,5 +1,6 @@
 use super::traits::StdConversions;
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct Bool {
     pub store: bool
 }

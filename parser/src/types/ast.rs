@@ -163,3 +163,12 @@ impl Expression {
         }
     }
 }
+
+impl AssignmentExpression {
+    pub fn identifier(&self) -> String {
+        match &*self.identifier {
+            Expression::Token(token) => token.literal.clone(),
+            _ => panic!("Invalid identifier")
+        }
+    }
+}
