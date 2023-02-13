@@ -1,7 +1,8 @@
 mod integer;
 mod string;
-pub mod traits;
 mod boolean;
+mod function;
+pub mod traits;
 
 use std::collections::HashMap;
 
@@ -9,8 +10,11 @@ use std::collections::HashMap;
 pub use integer::Integer;
 pub use string::CompoundString;
 pub use boolean::Bool;
+pub use function::Function;
 
 use self::traits::StdConversions;
+
+use super::Callable;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Scope {
@@ -23,6 +27,10 @@ impl Scope {
             variables: HashMap::new()
         }
     }
+
+    pub fn assign(&mut self, variable: Variable) {
+        self.variables.insert(variable.name, *variable.value);
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -33,11 +41,13 @@ pub enum VariableType {
     Function
 }
 
+trait DynFunction: Callable + Clone {}
 #[derive(Debug, Clone, PartialEq)]
 pub enum VariableStorage {
     Integer(Integer),
     String(CompoundString),
     Boolean(Bool),
+    Function(Function),
     Scope(Scope)
 }
 
@@ -54,6 +64,7 @@ impl StdConversions for VariableStorage {
             VariableStorage::Integer(i) => i.clone(),
             VariableStorage::String(s) => s.to_integer(),
             VariableStorage::Boolean(b) => b.to_integer(),
+            VariableStorage::Function(f) => f.to_integer(),
             VariableStorage::Scope(_) => panic!("Cannot convert scope to integer")
         }
     }
@@ -63,6 +74,7 @@ impl StdConversions for VariableStorage {
             VariableStorage::Integer(i) => i.to_compound_string(),
             VariableStorage::String(s) => s.clone(),
             VariableStorage::Boolean(b) => b.to_compound_string(),
+            VariableStorage::Function(f) => f.to_compound_string(),
             VariableStorage::Scope(_) => panic!("Cannot convert scope to string")
         }
     }
@@ -72,6 +84,7 @@ impl StdConversions for VariableStorage {
             VariableStorage::Integer(i) => i.to_bool(),
             VariableStorage::String(s) => s.to_bool(),
             VariableStorage::Boolean(b) => b.clone(),
+            VariableStorage::Function(f) => f.to_bool(),
             VariableStorage::Scope(_) => panic!("Cannot convert scope to boolean")
         }
     }

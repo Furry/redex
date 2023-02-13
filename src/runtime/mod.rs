@@ -1,14 +1,18 @@
 use std::{collections::HashMap, borrow::{BorrowMut, Borrow}};
 use std::time::Instant;
 
-use parser::types::ast::{Expression, LiteralExpression, MathType};
+use parser::types::ast::{Expression, LiteralExpression, MathType, IdentifierExpression};
 use heapsize::HeapSizeOf;
 
-use self::primitives::{ VariableStorage, Scope, CompoundString };
+use self::primitives::{ VariableStorage, Scope, CompoundString, Function };
 use self::primitives::traits::StdConversions;
 
 pub mod primitives;
+pub mod standard;
 pub mod errors;
+
+// Re-export traits
+pub use self::primitives::traits::{ Callable };
 
 pub struct Runtime {
     pub global: Scope,
@@ -23,6 +27,19 @@ impl Runtime {
             instructions: 0,
             start_time: std::time::Instant::now()
         }
+    }
+
+    pub fn link_std(&mut self) {
+        // Link our standard functions
+        // Get the point of standard::Print::call
+        self.assign("print".to_string(), VariableStorage::Function(
+            Function::new(
+                "print".to_string(),
+                vec!["value".to_string()],
+                vec![],
+                Some(standard::Print::call as *const () as u32)
+            )
+        ));
     }
 }   
 
@@ -59,6 +76,9 @@ impl Runtime {
 
 impl Runtime {
     pub fn evaluate(&mut self, expression: &Expression) -> Option<VariableStorage> {
+        // Increment the instruction counter
+        self.instructions = self.instructions + 1;
+        println!("Expression: {:?}", expression);
         match expression {
             Expression::Literal(literal) => {
                 // Create a variable storage
@@ -186,7 +206,9 @@ impl Runtime {
                 // Return the storage
                 Some(storage)
             },
-            Expression::Group(_) => todo!(),
+            Expression::Group(group) => {
+                None
+            },
             Expression::Block(block) => {
                 for expression in &block.children {
                     self.evaluate(expression);
@@ -203,9 +225,26 @@ impl Runtime {
                 None
             },
             Expression::Return(_) => todo!(),
-            Expression::Token(_) => todo!(),
+            Expression::Token(t) => {
+                None
+            },
             Expression::Conditional(_) => todo!(),
+            Expression::Function(function) => {
+                let names = function.scope.iter()
+                    .map(|x| x.name.clone())
+                    .collect::<Vec<String>>();
+
+                Some(VariableStorage::Function(
+                    primitives::Function::new(
+                        function.name.clone(),
+                        names,
+                        function.children.clone(),
+                        None
+                    )
+                ))
+            }
             Expression::Misc => todo!(),
+            Expression::Call(_) => todo!(),
         }
     }
 

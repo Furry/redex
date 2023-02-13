@@ -4,19 +4,19 @@ use serde_json;
 use crate::runtime::Runtime;
 
 pub mod runtime;
+pub mod debug;
 #[cfg(test)]
 pub mod tests;
 
 fn main() {
     let input = 
     r#"
-    let x = 34 + 2 * 70;
-    let y = 55;
-    let z = 44;
+    print("Hello!")
     "#;
     let tokens = lexer::parse_tokens(input);
     let mut parser = Parser::new(tokens);
     let mut runtime = Runtime::new();
+    runtime.link_std();
 
     let result = parser.parse();
     // let json = serde_json::to_string(&result).unwrap();

@@ -1,6 +1,6 @@
 use std::{ collections::VecDeque };
 
-use crate::types::{token::{Token, TokenType}, ast::{Expression, LiteralExpression, ExpressionMeta, LiteralType, GroupExpression, BlockExpression, MathExpression, MathType, ProgramBody, AssignmentExpression, IdentifierExpression, ReturnExpression, ConditionalExpression}};
+use crate::types::{token::{Token, TokenType}, ast::{Expression, LiteralExpression, ExpressionMeta, LiteralType, GroupExpression, BlockExpression, MathExpression, MathType, ProgramBody, AssignmentExpression, IdentifierExpression, ReturnExpression, ConditionalExpression, FunctionExpression, CallExpression}};
 
 #[derive(Debug)]
 pub struct Parser {
@@ -88,7 +88,7 @@ impl Parser {
                 TokenType::StringLiteral  |
                 TokenType::IntegerLiteral |
                 TokenType::BooleanLiteral => {
-                    Expression::Literal(
+                    let literal = Expression::Literal(
                         LiteralExpression {
                             meta: ExpressionMeta {
                                 start: next.start,
@@ -97,7 +97,25 @@ impl Parser {
                             raw: next.literal.clone(),
                             which: LiteralType::from(kind)
                         }
-                    )
+                    );
+
+                    // If the next is a group, then it's a function call.
+                    if let Some(next) = self.peek_next() {
+                        if let Expression::Group(group) = next.clone() {
+                            self.next();
+                            Expression::Call(
+                                CallExpression {
+                                    meta: ExpressionMeta::new(next.meta().start, group.meta.end),
+                                    callee: Box::new(literal),
+                                    args: group.children
+                                }
+                            )
+                        } else {
+                            literal
+                        }
+                    } else {
+                        literal
+                    }
                 },
 
                 // Consruct a new math expression with the operator as the type.
@@ -270,13 +288,17 @@ impl Parser {
                     Expression::Assignment(
                         AssignmentExpression {
                             meta: ExpressionMeta::new(0, 0),
-                            identifier: Box::new(identifier),
+                            identifier: Box::new(identifier.clone()),
                             expression: Box::new(
-                                Expression::Program(
-                                    ProgramBody {
+                                Expression::Function(
+                                    FunctionExpression {
                                         meta: ExpressionMeta::new(0, 0),
                                         scope: scope_arguments,
-                                        children: exprs
+                                        children: exprs,
+                                        name: match identifier {
+                                            Expression::Token(token) => token.literal,
+                                            _ => panic!("Expected token for identifier"),
+                                        }
                                     }
                                 )
                             )

@@ -30,6 +30,13 @@ pub struct LiteralExpression {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
+pub struct CallExpression {
+    pub meta: ExpressionMeta,
+    pub callee: Box<Expression>,
+    pub args: Vec<Expression>
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct IdentifierExpression {
     pub meta: ExpressionMeta,
     pub name: String
@@ -79,6 +86,14 @@ pub struct ProgramBody {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
+pub struct FunctionExpression {
+    pub meta: ExpressionMeta,
+    pub scope: Vec<IdentifierExpression>,
+    pub children: Vec<Expression>,
+    pub name: String
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct AssignmentExpression {
     pub meta: ExpressionMeta,
     pub identifier: Box<Expression>,
@@ -104,6 +119,8 @@ pub enum Expression {
     Return(ReturnExpression),
     Token(Token),
     Conditional(ConditionalExpression),
+    Function(FunctionExpression),
+    Call(CallExpression),
     Misc
 }
 
@@ -152,7 +169,9 @@ impl Expression {
             Expression::Return(return_expr) => return_expr.meta.clone(),
             Expression::Token(token) => ExpressionMeta::new(token.start, token.end),
             Expression::Conditional(conditional) => conditional.meta.clone(),
-            Expression::Misc => ExpressionMeta::new(0, 1)
+            Expression::Function(function) => function.meta.clone(),
+            Expression::Call(call) => call.meta.clone(),
+            Expression::Misc => ExpressionMeta::new(0, 1),
         }
     }
 
@@ -161,6 +180,12 @@ impl Expression {
             Expression::Token(token) => token.token_type == kind,
             _ => false
         }
+    }
+}
+
+impl Into<String> for IdentifierExpression {
+    fn into(self) -> String {
+        return self.name
     }
 }
 
