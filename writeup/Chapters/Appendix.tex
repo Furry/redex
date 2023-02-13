@@ -1,0 +1,20 @@
+\documentclass[../Main.tex]{subfiles}
+\begin{document}
+
+% The next for lines makes sure numbering in the appendix is correct - DO NOT CHANGE
+\renewcommand{\thesubsection}{A\arabic{subsection}}
+\renewcommand{\thetable}{A\arabic{subsection}.\arabic{table}}
+\counterwithin{table}{subsection}
+\counterwithin{figure}{subsection}
+%--------------------------------------------------------------
+
+\subsection{Test}
+\begin{figure}[h]
+    \centering
+    \caption{NHH logo}
+    \includegraphics[width=0.2\columnwidth]{nhhlogo2.png}
+    \label{fig:logo2}
+\end{figure}
+
+\biblio % Needed for referencing to working when compiling individual subfiles - Do not remove
+\end{document}

@@ -1,20 +1,27 @@
 use std::{collections::HashMap, borrow::{BorrowMut, Borrow}};
+use std::time::Instant;
 
-use parser::types::ast::{Expression, LiteralExpression};
+use parser::types::ast::{Expression, LiteralExpression, MathType};
+use heapsize::HeapSizeOf;
 
-use self::primitives::{ VariableStorage };
+use self::primitives::{ VariableStorage, Scope, CompoundString };
+use self::primitives::traits::StdConversions;
 
 pub mod primitives;
 pub mod errors;
 
 pub struct Runtime {
-    pub variables: HashMap<String, primitives::VariableStorage>,
+    pub global: Scope,
+    pub instructions: u64,
+    pub start_time: std::time::Instant
 }
 
 impl Runtime {
     pub fn new() -> Runtime {
         Runtime {
-            variables: HashMap::new(),
+            global: Scope::new(),
+            instructions: 0,
+            start_time: std::time::Instant::now()
         }
     }
 }   
@@ -22,31 +29,31 @@ impl Runtime {
 // Debug Functions
 impl Runtime {
     pub fn coredump(&self) {
-        for (key, value) in &self.variables {
+        // Get the size in bytes of the entire Runtime struct
+        let mut size = self.heap_size_of_children();
+        size = size + std::mem::size_of::<Runtime>();
+
+        println!("========= CORE DUMP =========");
+        println!("Runtime Size: {} bytes", size);
+        println!("Instructions: {}", self.instructions);
+        println!("Runtime: {}", self.start_time.elapsed().as_millis());
+        println!("--------- SCOPES: ---------");
+        println!("Global Scope:");
+        for (key, value) in self.global.variables.iter() {
             println!("{}: {:?}", key, value);
         }
     }
 
     fn assign(&mut self, key: String, value: VariableStorage) {
-        // Check if the key already exists
-        if self.variables.contains_key(&key) {
-            panic!("Variable already exists");
-        } else {
-            // Insert the value
-            self.variables.insert(key, value);
-        }
+        self.global.variables.insert(key, value);
     }
 
     fn pull<
         StdConversions, T: std::fmt::Debug + std::clone::Clone
     >(&self, key: &String) -> VariableStorage {
-        // Check if the key exists
-        if self.variables.contains_key(key) {
-            // Return the value
-            self.variables.get(key).unwrap().clone()
-        } else {
-            panic!("Request to unscoped variable");
-        }
+        let value = self.global.variables.get(key).unwrap();
+        let value = value.clone();
+        value
     }
 }
 
@@ -70,7 +77,7 @@ impl Runtime {
                         // Create a variable storage
                         let storage = VariableStorage::Integer(
                             primitives::Integer::from(
-                                literal.raw.parse::<i64>().unwrap()
+                                literal.raw.parse::<f64>().unwrap()
                             )
                         );
                         // Return the storage
@@ -97,9 +104,95 @@ impl Runtime {
                 // Return nothing
                 None
             },
-            Expression::Math(_) => todo!(),
+            Expression::Math(math) => {
+                // println!("Math: {:?}", math);
+                // println!("hit");
+                // Evaluate the left expression
+                let left = self.evaluate(&math.left.clone().unwrap());
+                // Evaluate the right expression
+                let right = self.evaluate(&math.right.clone().unwrap());
+                // Create a variable storage
+                let storage = match math.which {
+                    MathType::Add => {
+                        // Add the two values
+                        let left = left.unwrap();
+                        let right = right.unwrap();
+                        match left {
+                            VariableStorage::Integer(left) => {
+                                VariableStorage::Integer(left.add(&right.to_integer()))
+                            },
+                            VariableStorage::String(left) => {
+                                VariableStorage::String(CompoundString::from(left.store + &right.to_compound_string().store))
+                            },
+                            _ => todo!()
+                        }
+                    },
+                    MathType::Subtract => {
+                        // Subtract the two values
+                        let left = left.unwrap();
+                        let right = right.unwrap();
+                        match left {
+                            VariableStorage::Integer(left) => {
+                                VariableStorage::Integer(left.sub(&right.to_integer()))
+                            },
+                            _ => todo!()
+                        }
+                    },
+                    MathType::Multiply => {
+                        // Multiply the two values
+                        let left = left.unwrap();
+                        let right = right.unwrap();
+                        match left {
+                            VariableStorage::Integer(left) => {
+                                VariableStorage::Integer(left.mult(&right.to_integer()))
+                            },
+                            _ => todo!()
+                        }
+                    },
+                    MathType::Divide => {
+                        // Divide the two values
+                        let left = left.unwrap();
+                        let right = right.unwrap();
+                        match left {
+                            VariableStorage::Integer(left) => {
+                                VariableStorage::Integer(left.div(&right.to_integer()))
+                            },
+                            _ => todo!()
+                        }
+                    },
+                    MathType::Modulo => {
+                        // Modulus the two values
+                        let left = left.unwrap();
+                        let right = right.unwrap();
+                        match left {
+                            VariableStorage::Integer(left) => {
+                                VariableStorage::Integer(left.modulo(&right.to_integer()))
+                            },
+                            _ => todo!()
+                        }
+                    },
+                    MathType::Power => {
+                        // Exponent the two values
+                        let left = left.unwrap();
+                        let right = right.unwrap();
+                        match left {
+                            VariableStorage::Integer(left) => {
+                                VariableStorage::Integer(left.pow(&right.to_integer()))
+                            },
+                            _ => todo!()
+                        }
+                    }
+                };
+                // Return the storage
+                Some(storage)
+            },
             Expression::Group(_) => todo!(),
-            Expression::Block(_) => todo!(),
+            Expression::Block(block) => {
+                for expression in &block.children {
+                    self.evaluate(expression);
+                }
+                None
+            },
             Expression::Program(program) => {
                 // Iterate over the expressions
                 for expression in &program.children {

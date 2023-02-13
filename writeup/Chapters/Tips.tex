@@ -1,0 +1,151 @@
+\documentclass[../Main.tex]{subfiles}
+\definecolor{lightgray}{RGB}{247,247,247} % custom defined colour
+\begin{document}
+
+This is just a few notes to help you get started with your \LaTeX{} project. The idea behind this template is to give you a good starting point from where you can build your thesis or report. \LaTeX{} has many possibilities and you can do almost anything you like. First I recommend reading all three parts of this introduction if your are new to the program: \url{https://www.overleaf.com/learn/latex/Free_online_introduction_to_LaTeX_(part_1)}
+
+\subsection{Adding chapters or sections}
+To get a good overview of the document this template is divided into different sections/subfile where each section/subfile represents a chapter. This gives the possibility to compile a single section at a time and is a nice way to structure the document. If you want to add new sections just rightclick on the chapters folder and choose \textit{New File}. In this file add to following code:
+
+\linespread{1}
+\begin{minted}[
+bgcolor=lightgray,
+style=vs 
+]{latex}
+\documentclass[../Main.tex]{subfiles}
+\begin{document}
+
+% Write stuff here
+
+\biblio 
+\end{document}
+\end{minted} 
+\linespread{1.5}Also add the filepath of that new section to Main.tex. The sections will be ordered in the final pdf the way you order them in Main.tex. Here is one example where the section/subfile is named \textit{NewSection.tex} and is in the \textit{Chapters} folder: 
+
+\linespread{1}
+\begin{minted}[
+bgcolor=lightgray,
+style=vs 
+]{latex}
+\section{Name of section}
+    \subfile{Chapters/NewSection}
+\end{minted} 
+\linespread{1.5}\subsection{Headings and subsections}
+Within each section one creates heading by using the command \mintinline[bgcolor=lightgray,style=vs]{latex}{\subsection{Heading here}}. The subsections you create will automatically be added to the table of contents. One can have different levels of headings using \mintinline[bgcolor=lightgray,style=vs]{latex}{\subsubsection{}} or \mintinline[bgcolor=lightgray,style=vs]{latex}{\paragraph{}}. The different headings will be marked X.1 for subsections, X.1.1 for subsubsections and X1.1.1 for paragraphs, where X represents the chapters.
+
+\subsection{Figures, tables and equations}
+
+One of my favourite things in \LaTeX{} is how it handles figures, tables and equations. Here are some examples of how to implement it in your document with code examples.
+
+\subsubsection{Figures}
+
+Figures and images are added using the the following environment:
+
+\linespread{1}
+\begin{minted}[
+bgcolor=lightgray,
+style=vs 
+]{latex}
+\begin{figure}[H]
+    \centering
+    \caption{NHH-logo}
+    \includegraphics[width=0.2\columnwidth]{Images/nhhlogo2.png}
+    \label{fig:logo}
+\end{figure}
+\end{minted} 
+\linespread{1.5}The code above will produce Figure \ref{fig:logo}. One can use many fileformats here including pdf, png, jpeg, jpg etc. The caption can be placed above or below the image and appear in the compiled pdf according to where you place it. The \mintinline[bgcolor=lightgray,style=vs]{latex}{\label{}} command has to come after the caption and is used for referencing the figure later in the document with the  \mintinline[bgcolor=lightgray,style=vs]{latex}{\ref{}} command. The numbering of figures, tables and equations will change according to chapter. E.g. Figure 3.1, Table 2.4, Equation 6.2. All of them have separate counters so one can have Table 4.2 and Figure 4.2 in the same document.
+
+\begin{figure}[H]
+    \centering
+    \caption{NHH logo}
+    \includegraphics[width=0.2\columnwidth]{Images/nhhlogo2.png}
+    \label{fig:logo}
+\end{figure}
+
+\subsubsection{Tables}
+
+Tables can be designed any way you like. Tables are numbered the same way as figures and can also be referenced directly if you give them a label. There are several \LaTeX{} table generators online, for example \url{https://www.tablesgenerator.com/}, which work very well. There is also a package in R called xtable which transforms R-tables to \LaTeX{} tables/code. This can be very helpful and save a lot of time if you are working with R. The following code produces Table \ref{tab:Variables}.
+
+\linespread{1}
+\begin{minted}[
+bgcolor=lightgray,
+style=vs 
+]{latex}
+\begin{table}[H]
+\centering
+\caption{Variables in datasett}
+\begin{tabular}{rr}
+  \hline
+  \hline
+ Variable name & Type of variable\\ 
+  \hline
+  Postal code & Categorical \\ 
+  Date of birth & Date \\ 
+  Municipality & Categorical \\ 
+  Type of car & Categorical\\ 
+  Registration date & Date \\ 
+  Sex & Categorical\\ 
+  Age &  Numerical \\ 
+   \hline
+   \hline
+   \label{tab:Variables}
+\end{tabular}
+\end{table}
+\end{minted} 
+\linespread{1.5}\begin{table}[H]
+\centering
+\caption{Variables in datasett}
+\begin{tabular}{rr}
+  \hline
+  \hline
+ Variable name & Type of variable\\ 
+  \hline
+  Postal code & Categorical \\ 
+  Date of birth & Date \\ 
+  Municipality & Categorical \\ 
+  Type of car & Categorical\\ 
+  Registration date & Date \\ 
+  Sex & Categorical\\ 
+  Age &  Numerical \\ 
+   \hline
+   \hline
+   \label{tab:Variables}
+\end{tabular}
+\end{table}
+
+\subsubsection{Equations}
+
+Equations are something that could be a problem in many other programs which creates documents, e.g. Word. \LaTeX{} is used by many researchers which writes a lot of equations because it's clean and easy for this purpose. There are code strings for Greek letters, special symbols, mathematical symbols etc. Equations are normally numbered. To create numbered equations one uses an equation environment, see below. The environment/code chunk displayed creates equation \ref{equ:test}. The numbering of equations also follow the chapters. One can also write inline equations in a paragraph using two dollar signs, \$\$, and writing inside the dollar signs. E.g. \mintinline[bgcolor=lightgray,style=vs]{latex}{$x+x=y$} will produce $x+x=y$.
+
+\linespread{1}
+\begin{minted}[
+bgcolor=lightgray,
+style=vs 
+]{latex}
+\begin{equation} \label{equ:test}
+        \hat{f}(x) = \sum^B_{b=1}\lambda \hat{f}^b(x)
+\end{equation}
+\end{minted} 
+\linespread{1.5}\begin{equation} \label{equ:test}
+        \hat{f}(x) = \sum^B_{b=1}\lambda \hat{f}^b(x)
+\end{equation}
+
+\subsubsection{Appendix}
+In the appendix the numbering is changed. Every subsection is number A1, A2, A3 etc. Figures, tables and equations are numbered according to their subsection, Figure A1.3, Table A3.5 etc.
+
+\subsection{References}
+Referencing in \LaTeX{} can be done many different ways, with many different packages. In this template the package \textit{natbib} and the the \textit{apa} style is used for referencing. Most referencing packages have a similar setup. In the Refererence.bib file you can find several examples of how to add a source to the document. After a sources has been added to the .bib file one can cite it in the text using several commands. I recommend reading the following link for more information regarding citation using natbib: \url{https://no.overleaf.com/learn/latex/Natbib_citation_styles}. Another common package for referencing and citation is \textit{biblatex}. Only sources that are cited within the text will appear in the reference list. One can use a command called nocite to list all references in the .bib file, even the ones not cited in text. If you find your source on Google scholar you can get the code chunk needed to add the source to your \LaTeX{} .bib file directly. This is done by clicking the citation button and choosing \textit{BibTex} in Google scholar.
+
+If you are using this template in English do not touch the apaeng.bst file as this is necessary for proper citation and a proper reference list. The apaeng.bst file ensures citation in the APA style. If you wish to use another style I would recommend the following site: \url{https://www.overleaf.com/learn/latex/Natbib_bibliography_styles}. If you want to change the citation style all you have to do is switch from ''apaeng'' in line 71 and 72 of the Main.tex file, to one of the style names mention in the link. The apaeng.bst file is added to this template to make it more stable.
+
+\subsection{Some useful notes}
+Commenting in latex is done by adding a percentage sign in front of what you want to comment. Only that specific line will become a comment. If you want to write an actual percentage sign in your text you have to add a backslash before the percentage sign like this, \textbackslash\%. One also has to add a backslash in front of a dollar sign, like so \textbackslash\$, to produce a dollar sign. This because the symbol is used for inline equations.
+
+One can quickly convert text to italic or bold by marking the wanted text and pressing ctrl+i (cmd+i for Mac) or ctrl+b (cmb+b).
+
+All labels have to be unique for crossreferencing purposes. As mentioned earlier \mintinline[bgcolor=lightgray,style=vs]{latex}{\ref{labelName}} will produce produce the number of the figure/tabel/equation and the command \mintinline[bgcolor=lightgray,style=vs]{latex}{\pageref{labelName}} will produce the page where the figure/tabel/equation is located.
+
+There are lots of sources online where you will find answers to most, if not all, of your question regarding \LaTeX{}. Google is your friend!
+
+Last, but not least, good luck with your thesis!
+\end{document}

@@ -42,6 +42,24 @@ impl Parser {
 
         return tokens;
     }
+
+    fn until_eol(&mut self) -> Vec<Token> {
+        let mut tokens = Vec::new();
+
+        while let Some(token) = self.input.pop_front() {
+            match token.token_type {
+                TokenType::Semicolon |
+                TokenType::Newline => {
+                    break;
+                }
+                _ => {
+                    tokens.push(token);
+                }
+            }
+        }
+
+        return tokens;
+    }
 }
 
 impl Parser {
@@ -60,6 +78,7 @@ impl Parser {
                 return None;
             }
             let next = next_.unwrap();
+        
             let kind = next.token_type.clone();
 
             // Match the type of token, and construct the appropriate expression.
@@ -163,11 +182,21 @@ impl Parser {
 
                     self.next(); // Skip the equals sign
 
-                    let exp_ = self.next();
-                    if exp_.is_none() {
-                        panic!("Expected expression after identifier");
-                    }
-                    let exp = exp_.unwrap();
+                    
+                    // Create new parser instance 
+
+                    // let mut parser = Parser::new(self.input.clone().into());
+                    // let exp = parser.parse_all();
+
+                    let chars = self.until_eol();
+                    let mut parser = Parser::new(chars);
+                    let exp = parser.parse_all();
+
+                    // let exp_ = self.next();
+                    // if exp_.is_none() {
+                    //     panic!("Expected expression after identifier");
+                    // }
+                    // let exp = exp_.unwrap();
 
                     Expression::Assignment(
                         AssignmentExpression {

@@ -53,7 +53,7 @@ fn nested_functions() {
             let math = (((33 + 44) + (69) + 33) + (55 * 24))
             return y + z + math
         }
-        return 44
+        return x()
     }"#;
     let tokens = lexer::parse_tokens(input);
     let mut parser = Parser::new(tokens);

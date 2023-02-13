@@ -21,7 +21,7 @@ impl CompoundString {
 
 impl StdConversions for CompoundString {
     fn to_integer(&self) -> super::Integer {
-        super::Integer::from(self.store.parse::<i64>().unwrap())
+        super::Integer::from(self.store.parse::<f64>().unwrap())
     }
 
     fn to_compound_string(&self) -> CompoundString {
