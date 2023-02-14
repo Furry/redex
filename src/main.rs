@@ -1,3 +1,5 @@
+#![feature(associated_const_equality)]
+
 use parser::{ parser::Parser, lexer };
 use serde_json;
 

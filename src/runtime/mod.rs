@@ -65,9 +65,7 @@ impl Runtime {
         self.global.variables.insert(key, value);
     }
 
-    fn pull<
-        StdConversions, T: std::fmt::Debug + std::clone::Clone
-    >(&self, key: &String) -> VariableStorage {
+    fn pull(&self, key: &String) -> VariableStorage {
         let value = self.global.variables.get(key).unwrap();
         let value = value.clone();
         value
@@ -78,7 +76,7 @@ impl Runtime {
     pub fn evaluate(&mut self, expression: &Expression) -> Option<VariableStorage> {
         // Increment the instruction counter
         self.instructions = self.instructions + 1;
-        println!("Expression: {:?}", expression);
+        // println!("Expression: {:?}", expression);
         match expression {
             Expression::Literal(literal) => {
                 // Create a variable storage
@@ -244,7 +242,28 @@ impl Runtime {
                 ))
             }
             Expression::Misc => todo!(),
-            Expression::Call(_) => todo!(),
+            Expression::Call(call) => {
+                // Get the function
+                let function = self.pull(&call.callee);
+
+                // Get the arguments
+                let arguments: Vec<VariableStorage> = call.args.iter()
+                    .map(|x| self.evaluate(x).unwrap())
+                    .collect();
+
+                // Match its type
+                match function {
+                    VariableStorage::Function(callablefunction) => {
+                        let scope = Scope::new();
+                        println!("Calling function: {:?}", callablefunction);
+                        callablefunction.call(scope, arguments)
+                    },
+                    _ => {
+                        panic!("Cannot call a non-function");
+                    }
+                }
+                // Return the result
+            },
         }
     }
 

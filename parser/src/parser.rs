@@ -88,7 +88,7 @@ impl Parser {
                 TokenType::StringLiteral  |
                 TokenType::IntegerLiteral |
                 TokenType::BooleanLiteral => {
-                    let literal = Expression::Literal(
+                    Expression::Literal(
                         LiteralExpression {
                             meta: ExpressionMeta {
                                 start: next.start,
@@ -97,25 +97,7 @@ impl Parser {
                             raw: next.literal.clone(),
                             which: LiteralType::from(kind)
                         }
-                    );
-
-                    // If the next is a group, then it's a function call.
-                    if let Some(next) = self.peek_next() {
-                        if let Expression::Group(group) = next.clone() {
-                            self.next();
-                            Expression::Call(
-                                CallExpression {
-                                    meta: ExpressionMeta::new(next.meta().start, group.meta.end),
-                                    callee: Box::new(literal),
-                                    args: group.children
-                                }
-                            )
-                        } else {
-                            literal
-                        }
-                    } else {
-                        literal
-                    }
+                    )
                 },
 
                 // Consruct a new math expression with the operator as the type.
@@ -173,8 +155,6 @@ impl Parser {
                             if t.token_type != TokenType::Identifier {
                                 only_identifiers = false;
                             }
-                        } else {
-                            only_identifiers = false;
                         }
                     }
 
@@ -185,6 +165,7 @@ impl Parser {
                             children: exprs
                         })
                     } else {
+                        println!("Hit else");
                         Parser::parse_vec(exprs)
                     }
                 },
@@ -339,8 +320,39 @@ impl Parser {
                 TokenType::Space |
                 TokenType::Newline => continue,
 
-                _ => Expression::Token(next),
-            };
+                _ => {
+                    let pn = self.peek_next();
+                    // If pn is some and its a group, then this is a function call.
+                    if let Some(pn) = pn {
+                        if let Expression::Group(_) = pn {
+                            let mut args: Vec<Expression> = Vec::new();
+                            let mut end = next.end;
+
+                            while let Some(pn) = self.peek_next() {
+                                if let Expression::Group(_) = pn {
+                                    break;
+                                }
+
+                                let arg = self.next().unwrap();
+                                end = arg.meta().end;
+                                args.push(arg);
+                            }
+
+                            self.next();
+                            break Some(Expression::Call(
+                                CallExpression {
+                                    meta: ExpressionMeta::new(next.start, end),
+                                    callee: next.literal,
+                                    args,
+                                }
+                            ))
+                        }
+                    }
+
+                    Expression::Token(next)
+                }
+
+            }; // END OF STATEMENT
 
             if k != Expression::Misc {
                 // println!("Yielding {:?}", k.clone());

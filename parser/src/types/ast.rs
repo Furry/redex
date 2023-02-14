@@ -32,7 +32,7 @@ pub struct LiteralExpression {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct CallExpression {
     pub meta: ExpressionMeta,
-    pub callee: Box<Expression>,
+    pub callee: String,
     pub args: Vec<Expression>
 }
 

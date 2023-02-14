@@ -44,24 +44,32 @@ impl StdConversions for Function {
 
 impl Callable for Function {
     fn call(&self, parent: super::Scope, args: Vec<super::VariableStorage>) -> Option<super::VariableStorage> {
-        // Create a new scope
-        let mut scope = super::Scope::new();
 
-        
-        for (i, arg) in args.iter().enumerate() {
-            // Create a variable
-            let variable = super::Variable {
-                name: self.parameters[i].clone(),
-                kind: super::VariableType::Integer,
-                value: Box::new(arg.clone())
-            };
-            // Assign the variable
-            scope.assign(variable);
+        // If self.ptr is Some, call the function unsafely via the pointer.
+        if let Some(ptr) = self.ptr {
+            let ptr = ptr as *const Function;
+            let func = unsafe { ptr.read() };
+            return func.call(parent, args);
+        } else {
+            // Create a new scope
+            let mut scope = super::Scope::new();
+    
+            
+            for (i, arg) in args.iter().enumerate() {
+                // Create a variable
+                let variable = super::Variable {
+                    name: self.parameters[i].clone(),
+                    kind: super::VariableType::Integer,
+                    value: Box::new(arg.clone())
+                };
+                // Assign the variable
+                scope.assign(variable);
+            }
+            // Create a variable storage
+            let storage = super::VariableStorage::Scope(scope);
+            // Return the storage
+            Some(storage)
         }
-        // Create a variable storage
-        let storage = super::VariableStorage::Scope(scope);
-        // Return the storage
-        Some(storage)
     }
 
     fn name(&self) -> String {
