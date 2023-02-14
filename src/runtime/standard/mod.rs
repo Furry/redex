@@ -7,13 +7,14 @@ pub use self::io::output::Print;
 pub use self::io::output::PrintLine;
 
 use std::collections::HashMap;
+use std::thread::Scope;
+
+use super::primitives::VariableStorage;
 lazy_static::lazy_static! {
-    // Create a map of all the functions
-    static ref HASHMAP: HashMap<u32, dyn Callable + Send + Sync> = {
-        let mut m = HashMap::new();
-        m.insert(0, "foo");
-        m.insert(1, "bar");
-        m.insert(2, "baz");
-        m
+    pub static ref IO: HashMap<String, dyn Fn(&Scope, Vec<VariableStorage>)> = {
+        let mut map = HashMap::new();
+        map.insert("print".to_string(), Box::new(Print));
+        map.insert("println".to_string(), Box::new(PrintLine));
+        map
     };
 }
