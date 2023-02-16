@@ -1,3 +1,5 @@
+use crate::runtime::Runtime;
+
 pub trait StdConversions {
     fn to_integer(&self) -> super::Integer;
     fn to_bool(&self) -> super::Bool;
@@ -5,6 +7,6 @@ pub trait StdConversions {
 }
 
 pub trait Callable {
-    fn call(&self, parent: super::Scope, args: Vec<super::VariableStorage>) -> Option<super::VariableStorage>;
+    fn call(&self, runtime: &Runtime, parent: super::Scope, args: Vec<super::VariableStorage>) -> Option<super::VariableStorage>;
     fn name(&self) -> String;
 }

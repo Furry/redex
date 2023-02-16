@@ -13,7 +13,8 @@ pub mod tests;
 fn main() {
     let input = 
     r#"
-    print("Hello!")
+    print("Hello World!")
+    print(" uwu")
     "#;
     let tokens = lexer::parse_tokens(input);
     let mut parser = Parser::new(tokens);
@@ -23,7 +24,8 @@ fn main() {
     let result = parser.parse();
     // let json = serde_json::to_string(&result).unwrap();
     // println!("{}", json);
+    println!("{:#?}", result);
 
     runtime.evaluate(&result);
-    runtime.coredump();
+    // runtime.coredump();
 }

@@ -1,6 +1,6 @@
 use parser::types::ast::Expression;
 
-use crate::runtime::Callable;
+use crate::runtime::{Callable, Runtime};
 
 use super::traits::StdConversions;
 
@@ -43,13 +43,16 @@ impl StdConversions for Function {
 
 
 impl Callable for Function {
-    fn call(&self, parent: super::Scope, args: Vec<super::VariableStorage>) -> Option<super::VariableStorage> {
+    fn call(&self, runtime: &Runtime, parent: super::Scope, args: Vec<super::VariableStorage>) -> Option<super::VariableStorage> {
 
         // If self.ptr is Some, call the function unsafely via the pointer.
         if let Some(ptr) = self.ptr {
-            let ptr = ptr as *const Function;
-            let func = unsafe { ptr.read() };
-            return func.call(parent, args);
+            let x = runtime.standard_functions.get(&ptr);
+            if let Some(func) = x {
+                return func.call(runtime, parent, args);
+            } else {
+                panic!("Function pointer is invalid!");
+            }
         } else {
             // Create a new scope
             let mut scope = super::Scope::new();

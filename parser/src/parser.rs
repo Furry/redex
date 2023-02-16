@@ -88,13 +88,21 @@ impl Parser {
                 TokenType::StringLiteral  |
                 TokenType::IntegerLiteral |
                 TokenType::BooleanLiteral => {
+                    let literal_content = next.literal.clone();
+                    // If 'which' is a string literal, remove the quotes.
+                    let literal_content = if kind == TokenType::StringLiteral {
+                        literal_content[1..literal_content.len() - 1].to_string()
+                    } else {
+                        literal_content
+                    };
+
                     Expression::Literal(
                         LiteralExpression {
                             meta: ExpressionMeta {
                                 start: next.start,
                                 end: next.end
                             },
-                            raw: next.literal.clone(),
+                            raw: literal_content,
                             which: LiteralType::from(kind)
                         }
                     )
@@ -165,7 +173,6 @@ impl Parser {
                             children: exprs
                         })
                     } else {
-                        println!("Hit else");
                         Parser::parse_vec(exprs)
                     }
                 },
@@ -324,21 +331,14 @@ impl Parser {
                     let pn = self.peek_next();
                     // If pn is some and its a group, then this is a function call.
                     if let Some(pn) = pn {
-                        if let Expression::Group(_) = pn {
-                            let mut args: Vec<Expression> = Vec::new();
+                        if let Expression::Group(group) = pn {
+                            let mut args: Vec<Expression> = group.children.clone();
                             let mut end = next.end;
 
-                            while let Some(pn) = self.peek_next() {
-                                if let Expression::Group(_) = pn {
-                                    break;
-                                }
-
-                                let arg = self.next().unwrap();
-                                end = arg.meta().end;
-                                args.push(arg);
-                            }
-
+                            // Consume the group
                             self.next();
+
+                            // println!("Group: {:?}", group);
                             break Some(Expression::Call(
                                 CallExpression {
                                     meta: ExpressionMeta::new(next.start, end),

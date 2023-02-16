@@ -17,7 +17,8 @@ pub use self::primitives::traits::{ Callable };
 pub struct Runtime {
     pub global: Scope,
     pub instructions: u64,
-    pub start_time: std::time::Instant
+    pub start_time: std::time::Instant,
+    pub standard_functions: HashMap<u32, Box<dyn Callable>>
 }
 
 impl Runtime {
@@ -25,11 +26,13 @@ impl Runtime {
         Runtime {
             global: Scope::new(),
             instructions: 0,
-            start_time: std::time::Instant::now()
+            start_time: std::time::Instant::now(),
+            standard_functions: HashMap::new()
         }
     }
 
     pub fn link_std(&mut self) {
+        let mut count = 0;
         // Link our standard functions
         // Get the point of standard::Print::call
         self.assign("print".to_string(), VariableStorage::Function(
@@ -37,9 +40,11 @@ impl Runtime {
                 "print".to_string(),
                 vec!["value".to_string()],
                 vec![],
-                Some(standard::Print::call as *const () as u32)
+                Some(count)
             )
         ));
+        self.standard_functions.insert(count, Box::new(standard::Print));
+        count = count + 1;
     }
 }   
 
@@ -255,8 +260,7 @@ impl Runtime {
                 match function {
                     VariableStorage::Function(callablefunction) => {
                         let scope = Scope::new();
-                        println!("Calling function: {:?}", callablefunction);
-                        callablefunction.call(scope, arguments)
+                        callablefunction.call(&self, scope, arguments)
                     },
                     _ => {
                         panic!("Cannot call a non-function");
