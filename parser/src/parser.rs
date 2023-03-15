@@ -5,7 +5,7 @@ use crate::types::{token::{Token, TokenType}, ast::{Expression, LiteralExpressio
 #[derive(Debug)]
 pub struct Parser {
     pub input: VecDeque<Token>,
-
+    pub skip_call: bool,
     pos: usize, 
     len: usize
 }
@@ -14,6 +14,7 @@ impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
         Parser {
             len: tokens.len(),
+            skip_call: false,
             input: VecDeque::from(tokens),
             pos: 0
         }
@@ -25,9 +26,14 @@ impl Parser {
     // A utility function to collect tokens until a corresponding token is found, balancing successive occurances.
     fn scope(&mut self, tracked: TokenType) -> Vec<Token> {
         let mut depth = 1;
+        let mut count = 0;
         let mut tokens = Vec::new();
 
         while let Some(token) = self.input.pop_front() {
+            // if count == 0 && token.token_type == tracked {
+            //         depth -= 1;
+            //     }
+            // println!("TRACKED: {:?}; SEE: {:?} -- {}", tracked.get_closing().unwrap(), token.token_type, depth);
             if token.token_type == tracked {
                 depth += 1;
             }
@@ -37,6 +43,7 @@ impl Parser {
             if depth == 0 {
                 break;
             }
+            count += 1;
             tokens.push(token);
         }
 
@@ -233,6 +240,7 @@ impl Parser {
                 // Identifier -> Arguments (Group) -> Scope
                 // Basically, the scope is parsed into a program and then that program is assigned to an identifier using the AssignExpression
                 TokenType::Fn => {
+                    self.skip_call = true;
                     let identifier_ = self.next();
                     if identifier_.is_none() {
                         panic!("Expected identifier after fn");
@@ -247,6 +255,8 @@ impl Parser {
 
                     let scope = self.scope(TokenType::LBrace);
 
+                    // dbg!(&scope);
+
                     let mut parser = Parser::new(scope);
                     let mut exprs = Vec::new();
                     while let Some(expr) = parser.next() {
@@ -254,6 +264,7 @@ impl Parser {
                     }
 
                     let mut scope_arguments: Vec<IdentifierExpression> = Vec::new();
+
                     match args.clone() {
                         Expression::Group(group) => {
                             for expr in group.children {
@@ -266,7 +277,10 @@ impl Parser {
                                             }
                                         );
                                     },
-                                    _ => panic!("Expected token for arguments"),
+                                    _ => {
+                                        println!("{:?}", expr);
+                                        // panic!("Expected token for argument");
+                                    }
                                 }
                             }
                         },
@@ -285,7 +299,10 @@ impl Parser {
                                         children: exprs,
                                         name: match identifier {
                                             Expression::Token(token) => token.literal,
-                                            _ => panic!("Expected token for identifier"),
+                                            _ => {
+                                                println!("{:?}", identifier);
+                                                panic!("Expected token for function name");
+                                            }
                                         }
                                     }
                                 )
@@ -330,26 +347,33 @@ impl Parser {
                 _ => {
                     let pn = self.peek_next();
                     // If pn is some and its a group, then this is a function call.
-                    if let Some(pn) = pn {
-                        if let Expression::Group(group) = pn {
-                            let mut args: Vec<Expression> = group.children.clone();
-                            let mut end = next.end;
-
-                            // Consume the group
-                            self.next();
-
-                            // println!("Group: {:?}", group);
-                            break Some(Expression::Call(
-                                CallExpression {
-                                    meta: ExpressionMeta::new(next.start, end),
-                                    callee: next.literal,
-                                    args,
-                                }
-                            ))
+                    if self.skip_call {
+                        // println!("Call Skipped");
+                        self.skip_call = false;
+                        self.next();
+                        Expression::Token(next)
+                    } else {
+                        if let Some(pn) = pn {
+                            if let Expression::Group(group) = pn {
+                                let mut args: Vec<Expression> = group.children.clone();
+                                let mut end = next.end;
+    
+                                // Consume the group
+                                self.next();
+    
+                                // println!("Group: {:?}", group);
+                                break Some(Expression::Call(
+                                    CallExpression {
+                                        meta: ExpressionMeta::new(next.start, end),
+                                        callee: next.literal,
+                                        args,
+                                    }
+                                ))
+                            }
                         }
+    
+                        Expression::Token(next)
                     }
-
-                    Expression::Token(next)
                 }
 
             }; // END OF STATEMENT

@@ -2,7 +2,7 @@ use crate::runtime::{Callable, primitives::{Scope, VariableStorage, Variable, tr
 
 pub struct Print;
 impl Callable for Print {
-    fn call(&self, runtime: &Runtime, parent: Scope, args: Vec<VariableStorage>) -> Option<VariableStorage> {
+    fn call(&self, _runtime: &Runtime, _parent: Scope, args: Vec<VariableStorage>) -> Option<VariableStorage> {
 
         // If Args is greater than 1, error.
         if args.len() != 1 {
@@ -21,20 +21,16 @@ impl Callable for Print {
 
 pub struct PrintLine;
 impl Callable for PrintLine {
-    fn call(&self, runtime: &Runtime, parent: Scope, args: Vec<VariableStorage>) -> Option<VariableStorage> {
+    fn call(&self, _runtime: &Runtime, _parent: Scope, args: Vec<VariableStorage>) -> Option<VariableStorage> {
         // If Args is greater than 1, error.
         if args.len() != 1 {
-            panic!("print() takes 1 argument, {} given", args.len());
+            panic!("println() takes 1 argument, {} given", args.len());
         }
-
-        let x = args[0].to_compound_string().store;
-        dbg!(&x);
         println!("{}", args[0].to_compound_string().store);
-
         None
     }
 
     fn name(&self) -> String {
-        "printline".to_string()
+        "println".to_string()
     }
 }

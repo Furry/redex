@@ -13,8 +13,10 @@ pub mod tests;
 fn main() {
     let input = 
     r#"
-    print("Hello World!")
-    print(" uwu")
+    println("Enter text: ")
+    let x = readln()
+    let response = "you entered: " + x
+    println(response)
     "#;
     let tokens = lexer::parse_tokens(input);
     let mut parser = Parser::new(tokens);

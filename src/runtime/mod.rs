@@ -45,6 +45,29 @@ impl Runtime {
         ));
         self.standard_functions.insert(count, Box::new(standard::Print));
         count = count + 1;
+
+        self.assign("println".to_string(), VariableStorage::Function(
+            Function::new(
+                "println".to_string(),
+                vec!["value".to_string()],
+                vec![],
+                Some(count)
+            )
+        ));
+        self.standard_functions.insert(count, Box::new(standard::PrintLine));
+        count = count + 1;
+
+        self.assign("readln".to_string(), VariableStorage::Function(
+            Function::new(
+                "readln".to_string(),
+                Vec::new(),
+                Vec::new(),
+                Some(count)
+            )
+        ));
+
+        self.standard_functions.insert(count, Box::new(standard::ReadLn));
+        count = count + 1;
     }
 }   
 
@@ -82,6 +105,7 @@ impl Runtime {
         // Increment the instruction counter
         self.instructions = self.instructions + 1;
         // println!("Expression: {:?}", expression);
+
         match expression {
             Expression::Literal(literal) => {
                 // Create a variable storage
@@ -229,7 +253,11 @@ impl Runtime {
             },
             Expression::Return(_) => todo!(),
             Expression::Token(t) => {
-                None
+                if self.global.variables.contains_key(t.literal.as_str()) {
+                    Some(self.pull(&t.literal))
+                } else {
+                    None
+                }
             },
             Expression::Conditional(_) => todo!(),
             Expression::Function(function) => {
@@ -251,6 +279,7 @@ impl Runtime {
                 // Get the function
                 let function = self.pull(&call.callee);
 
+                // dbg!(call.args.clone());
                 // Get the arguments
                 let arguments: Vec<VariableStorage> = call.args.iter()
                     .map(|x| self.evaluate(x).unwrap())
@@ -267,7 +296,7 @@ impl Runtime {
                     }
                 }
                 // Return the result
-            },
+            }
         }
     }
 
