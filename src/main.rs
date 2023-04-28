@@ -10,13 +10,17 @@ pub mod debug;
 #[cfg(test)]
 pub mod tests;
 
+/*
+println("Enter text: ")
+let x = readln()
+let response = "you entered: " + x
+println(response)
+*/
+
 fn main() {
     let input = 
     r#"
-    println("Enter text: ")
-    let x = readln()
-    let response = "you entered: " + x
-    println(response)
+    let x = "hello"
     "#;
     let tokens = lexer::parse_tokens(input);
     let mut parser = Parser::new(tokens);
@@ -29,5 +33,5 @@ fn main() {
     println!("{:#?}", result);
 
     runtime.evaluate(&result);
-    // runtime.coredump();
+    runtime.coredump();
 }

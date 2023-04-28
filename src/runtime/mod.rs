@@ -234,7 +234,8 @@ impl Runtime {
                 Some(storage)
             },
             Expression::Group(group) => {
-                None
+                // Return the first element, else panic
+                self.evaluate(&group.children[0])
             },
             Expression::Block(block) => {
                 for expression in &block.children {
@@ -259,7 +260,24 @@ impl Runtime {
                     None
                 }
             },
-            Expression::Conditional(_) => todo!(),
+            Expression::Conditional(conditional_block) => {
+                // Evaluate the condition
+                let condition = self.evaluate(&conditional_block.condition).unwrap();
+                // Check if the condition is true
+
+                // println!("Condition: {:?}", condition.to_bool().store);
+                if condition.to_bool().store {
+                    // Evaluate the true block
+                    self.evaluate(&conditional_block.expression);
+                } else {
+                    // Evaluate the false block
+                    if conditional_block.alternative.is_some() {
+                        self.evaluate(&conditional_block.alternative.clone().unwrap());
+                    }
+                }
+                // Return nothing
+                None
+            },
             Expression::Function(function) => {
                 let names = function.scope.iter()
                     .map(|x| x.name.clone())

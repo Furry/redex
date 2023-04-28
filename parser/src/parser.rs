@@ -311,6 +311,21 @@ impl Parser {
                     )   
                 },
 
+                TokenType::Else => {
+                    // We're expecting a block after this!
+                    // self.next()
+                    //     .unwrap_or_else(|| panic!("Expected block after else"));
+                    Expression::Block(
+                        BlockExpression {
+                            meta: ExpressionMeta::new(next.start, next.end),
+                            children: vec![
+                                self.next()
+                                    .unwrap_or_else(|| panic!("Expected block after else"))
+                            ]
+                        }
+                    )
+                }
+
                 TokenType::If => {
                     let condition = self.next()
                         .unwrap_or_else(|| panic!("Expected condition after if"));
@@ -318,13 +333,16 @@ impl Parser {
                     let expression = self.next()
                         .unwrap_or_else(|| panic!("Expected expression after if"));
 
+
                     let mut alternative: Option<Box<Expression>> = None;
                     if let Some(peek) = self.peek_next() {
                         match peek {
                             Expression::Token(token) => {
+                                println!("Checking against: {:?}", token.literal);
                                 if token.token_type == TokenType::Else {
                                     self.next();
-                                    alternative = Some(Box::new(self.next().unwrap_or_else(|| panic!("Expected expression after else"))));
+                                    // alternative = Some(Box::new(self.next().unwrap_or_else(|| panic!("Expected expression after else"))));
+                                    
                                 }
                             }
                             _ => {}
