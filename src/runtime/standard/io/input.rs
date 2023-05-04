@@ -1,8 +1,8 @@
-use crate::runtime::{Callable, primitives::{Scope, VariableStorage, Variable, traits::StdConversions, CompoundString}, Runtime};
+use crate::runtime::{Callable, primitives::{Scope, VariableStorage, CompoundString}, Runtime};
 
 pub struct ReadLn;
 impl Callable for ReadLn {
-    fn call(&self, _runtime: &Runtime, _parent: Scope, args: Vec<VariableStorage>) -> Option<VariableStorage> {
+    fn call(&self, _runtime: &Runtime, _parent: Scope, _args: Vec<VariableStorage>) -> Option<VariableStorage> {
 
         // Hold the process until standard input is received.
         let mut input = String::new();
@@ -17,3 +17,4 @@ impl Callable for ReadLn {
         "print".to_string()
     }
 }
+
