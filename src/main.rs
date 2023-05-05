@@ -1,4 +1,5 @@
 #![feature(associated_const_equality)]
+#![feature(box_into_inner)]
 
 use std::io::Write;
 
@@ -20,14 +21,32 @@ println(response)
 */
 
 fn main() {
-    cli();
+    // cli();
+    oneshot();
 }
 
 #[allow(dead_code)]
 fn oneshot() {
     let input = 
+    // r#"
+    // let i = 0
+    // while (true) {
+    //     let a = i % 3
+    //     let b = i % 5
+    //     print(i)
+    //     if (a == 0) {
+    //         print("Fizz")
+    //     }
+    //     if (b == 0) {
+    //         print("Buzz")
+    //     }
+    //     println("")
+    //     let i = i + 1
+    // }
+    // "#;
     r#"
-    print("hi");
+    let y = net_get("https://google.com")
+    println(y)
     "#;
     let tokens = lexer::parse_tokens(input);
     let mut parser = Parser::new(tokens);
@@ -35,31 +54,17 @@ fn oneshot() {
     runtime.link_std();
 
     let result = parser.parse();
-    // let json = serde_json::to_string(&result).unwrap();
+    let json = serde_json::to_string(&result).unwrap();
     // println!("{}", json);
-    println!("{:#?}", result);
+    // println!("{:#?}", result);
 
     runtime.evaluate(&result);
-    runtime.coredump();
+    // runtime.coredump();
 }
 
 fn cli() {
-    // // Constantly ask for input to evaluate with > prompt.
-    // let mut input = String::new();
     let mut runtime = Runtime::new();
     runtime.link_std();
-
-    // loop {
-    //     print!("> ");
-    //     std::io::stdin().read_line(&mut input).unwrap();
-
-    //     let tokens = lexer::parse_tokens(&input);
-    //     let mut parser = Parser::new(tokens);
-    //     let result = parser.parse();
-    //     runtime.evaluate(&result);
-
-    //     input.clear();
-    // }
 
     loop {
         print!("redex> ");

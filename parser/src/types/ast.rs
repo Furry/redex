@@ -13,7 +13,8 @@ pub enum LiteralType {
     String,
     Integer,
     Float,
-    Boolean
+    Boolean,
+    Dict
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
@@ -89,7 +90,7 @@ pub struct ProgramBody {
 pub struct FunctionExpression {
     pub meta: ExpressionMeta,
     pub scope: Vec<IdentifierExpression>,
-    pub children: Vec<Expression>,
+    pub children: Option<Box<Expression>>,
     pub name: String
 }
 
@@ -109,6 +110,21 @@ pub struct ConditionalExpression {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
+pub struct WhileExpression {
+    pub meta: ExpressionMeta,
+    pub condition: Box<Expression>,
+    pub expression: Box<Expression>
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
+pub struct ComparisonExpression {
+    pub meta: ExpressionMeta,
+    pub left: Box<Expression>,
+    pub right: Box<Expression>,
+    pub which: TokenType
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub enum Expression {
     Literal(LiteralExpression),
     Assignment(AssignmentExpression),
@@ -119,8 +135,10 @@ pub enum Expression {
     Return(ReturnExpression),
     Token(Token),
     Conditional(ConditionalExpression),
+    Comparison(ComparisonExpression),
     Function(FunctionExpression),
     Call(CallExpression),
+    While(WhileExpression),
     Misc
 }
 
@@ -129,7 +147,6 @@ impl LiteralType {
         match kind {
             TokenType::StringLiteral => LiteralType::String,
             TokenType::IntegerLiteral => LiteralType::Integer,
-            // TokenType::FloatLiteral => LiteralType::Float,
             TokenType::BooleanLiteral => LiteralType::Boolean,
             _ => panic!("Invalid literal type")
         }
@@ -152,6 +169,7 @@ impl MathType {
             TokenType::Minus => MathType::Subtract,
             TokenType::Asterisk => MathType::Multiply,
             TokenType::Slash => MathType::Divide,
+            TokenType::Modulo => MathType::Modulo,
             _ => panic!("Invalid math type")
         }
     }
@@ -171,6 +189,8 @@ impl Expression {
             Expression::Conditional(conditional) => conditional.meta.clone(),
             Expression::Function(function) => function.meta.clone(),
             Expression::Call(call) => call.meta.clone(),
+            Expression::While(while_expr) => while_expr.meta.clone(),
+            Expression::Comparison(comparison) => comparison.meta.clone(),
             Expression::Misc => ExpressionMeta::new(0, 1),
         }
     }

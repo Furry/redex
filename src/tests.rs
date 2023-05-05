@@ -38,3 +38,16 @@ fn conditional_flow() {
     let result = parser.parse();
     println!("{:?}", result);
 }
+
+#[test]
+fn dict() {
+    let input = r#"
+    let dict = ["key1": "value1", "key2": "value2"]
+    "#;
+
+    let tokens = lexer::parse_tokens(input);
+    let mut parser = Parser::new(tokens);
+
+    let result = parser.parse();
+    println!("{:?}", result);
+}

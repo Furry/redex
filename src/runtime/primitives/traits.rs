@@ -7,6 +7,6 @@ pub trait StdConversions {
 }
 
 pub trait Callable {
-    fn call(&self, runtime: &Runtime, parent: super::Scope, args: Vec<super::VariableStorage>) -> Option<super::VariableStorage>;
+    fn call(&self, runtime: &mut Runtime, parent: super::Scope, args: Vec<super::VariableStorage>) -> Option<super::VariableStorage>;
     fn name(&self) -> String;
 }

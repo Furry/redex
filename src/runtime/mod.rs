@@ -1,8 +1,10 @@
-use std::{collections::HashMap, borrow::{BorrowMut, Borrow}};
+use std::{collections::HashMap, borrow::{BorrowMut, Borrow}, sync::Arc};
 use std::time::Instant;
 
-use parser::types::ast::{Expression, LiteralExpression, MathType, IdentifierExpression};
+use parser::types::{ast::{Expression, LiteralExpression, MathType, IdentifierExpression}, token::TokenType};
 use heapsize::HeapSizeOf;
+
+use crate::runtime::primitives::Bool;
 
 use self::primitives::{ VariableStorage, Scope, CompoundString, Function };
 use self::primitives::traits::StdConversions;
@@ -18,7 +20,7 @@ pub struct Runtime {
     pub global: Scope,
     pub instructions: u64,
     pub start_time: std::time::Instant,
-    pub standard_functions: HashMap<u32, Box<dyn Callable>>
+    pub standard_functions: HashMap<u32, Arc<dyn Callable>>
 }
 
 impl Runtime {
@@ -39,34 +41,58 @@ impl Runtime {
             Function::new(
                 "print".to_string(),
                 vec!["value".to_string()],
-                vec![],
+                None,
                 Some(count)
             )
         ));
-        self.standard_functions.insert(count, Box::new(standard::Print));
+        self.standard_functions.insert(count, Arc::new(standard::Print));
         count = count + 1;
 
         self.assign("println".to_string(), VariableStorage::Function(
             Function::new(
                 "println".to_string(),
                 vec!["value".to_string()],
-                vec![],
+                None,
                 Some(count)
             )
         ));
-        self.standard_functions.insert(count, Box::new(standard::PrintLine));
+        self.standard_functions.insert(count, Arc::new(standard::PrintLine));
         count = count + 1;
 
         self.assign("readln".to_string(), VariableStorage::Function(
             Function::new(
                 "readln".to_string(),
                 Vec::new(),
-                Vec::new(),
+                None,
                 Some(count)
             )
         ));
 
-        self.standard_functions.insert(count, Box::new(standard::ReadLn));
+        self.standard_functions.insert(count, Arc::new(standard::ReadLn));
+        count = count + 1;
+
+        self.assign("sleep".to_string(), VariableStorage::Function(
+            Function::new(
+                "sleep".to_string(),
+                vec!["time".to_string()],
+                None,
+                Some(count)
+            )
+        ));
+
+        self.standard_functions.insert(count, Arc::new(standard::io::Sleep));
+        count = count + 1;
+
+        self.assign("net_get".to_string(), VariableStorage::Function(
+            Function::new(
+                "net_get".to_string(),
+                vec!["url".to_string()],
+                None,
+                Some(count)
+            )
+        ));
+
+        self.standard_functions.insert(count, Arc::new(standard::net::NetGet));
         count = count + 1;
     }
 }   
@@ -101,6 +127,10 @@ impl Runtime {
 }
 
 impl Runtime {
+    pub fn evaluate_owned(&mut self, expression: Expression) -> Option<VariableStorage> {
+        self.evaluate(&expression)
+    }
+
     pub fn evaluate(&mut self, expression: &Expression) -> Option<VariableStorage> {
         // Increment the instruction counter
         self.instructions = self.instructions + 1;
@@ -140,6 +170,13 @@ impl Runtime {
                         // Return the storage
                         Some(storage)
                     }
+                    parser::types::ast::LiteralType::Dict => {
+                        let storage = VariableStorage::Dict(
+                            primitives::Dict::from_string(literal.raw.clone())
+                        );
+
+                        Some(storage)
+                    },
                     _ => todo!()
                 }
             },
@@ -264,7 +301,6 @@ impl Runtime {
                 // Evaluate the condition
                 let condition = self.evaluate(&conditional_block.condition).unwrap();
                 // Check if the condition is true
-
                 // println!("Condition: {:?}", condition.to_bool().store);
                 if condition.to_bool().store {
                     // Evaluate the true block
@@ -292,6 +328,33 @@ impl Runtime {
                     )
                 ))
             }
+            Expression::While(while_block) => {
+                // Evaluate the condition
+                let condition = self.evaluate(&while_block.condition).unwrap();
+                // Check if the condition is true
+                while condition.to_bool().store {
+                    // Evaluate the true block
+                    self.evaluate(&while_block.expression);
+                }
+                // Return nothing
+                None
+            },
+            Expression::Comparison(comparison) => {
+
+                // Evaluate left and right
+                let left = self.evaluate(&comparison.left).unwrap();
+                let right = self.evaluate(&comparison.right).unwrap();
+
+                // Compare the two values
+                match comparison.which {
+                    TokenType::Equal => {
+                        Some(VariableStorage::Boolean(
+                            Bool::from(left == right)
+                        ))
+                    },
+                    _ => todo!()
+                }
+            },
             Expression::Misc => todo!(),
             Expression::Call(call) => {
                 // Get the function
@@ -306,8 +369,8 @@ impl Runtime {
                 // Match its type
                 match function {
                     VariableStorage::Function(callablefunction) => {
-                        let scope = Scope::new();
-                        callablefunction.call(&self, scope, arguments)
+                        let mut scope = Scope::new();
+                        callablefunction.call(self, scope, arguments)
                     },
                     _ => {
                         panic!("Cannot call a non-function");

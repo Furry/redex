@@ -25,6 +25,8 @@ pub enum TokenType {
     Else,
     #[strum(props(regex = "^return"))]
     Return,
+    #[strum(props(regex = "^while"))]
+    While,
 
     // This regex for ' and " /.*?'((?:\\\\|\\'|[^'])*+)'/"
     #[strum(props(regex = r#"(?:^'((?:\\\\|\\'|[^'])*)')|(?:^"((?:\\\\|\\"|[^"])*)")"#))]
@@ -35,12 +37,25 @@ pub enum TokenType {
     #[strum(props(regex = r#"^(true|false)"#))]
     BooleanLiteral,
     // Operators
+    #[strum(props(regex = r#"^=="#))]
+    Equal,
+    #[strum(props(regex = r#"^={3}"#))]
+    TypeEqual,
+    #[strum(props(regex = r#"^~="#))]
+    NotEqual,
+    #[strum(props(regex = r#"^<"#))]
+    LessThan,
+    #[strum(props(regex = r#"^>"#))]
+    GreaterThan,
+
     #[strum(props(regex = r#"^="#))]
     Assign,
     #[strum(props(regex = r#"^\+"#))]
     Plus,
     #[strum(props(regex = r#"^-"#))]
     Minus,
+    #[strum(props(regex = r#"^%"#))]
+    Modulo,
     #[strum(props(regex = r#"^!"#))]
     Bang,
     #[strum(props(regex = r#"^\*"#))]
@@ -50,6 +65,8 @@ pub enum TokenType {
     // Delimiters
     #[strum(props(regex = r#"^,"#))]
     Comma,
+    #[strum(props(regex = r#"^:"#))]
+    Colon,
     #[strum(props(regex = r#"^;"#))]
     Semicolon,
     #[strum(props(regex = r#"^\("#))]
@@ -65,17 +82,6 @@ pub enum TokenType {
     #[strum(props(regex = r#"^\]"#))]
     RBracket,
 
-    // Comparison
-    #[strum(props(regex = r#"^=="#))]
-    Equal,
-    #[strum(props(regex = r#"^={3}"#))]
-    TypeEqual,
-    #[strum(props(regex = r#"^~="#))]
-    NotEqual,
-    #[strum(props(regex = r#"^<"#))]
-    LessThan,
-    #[strum(props(regex = r#"^>"#))]
-    GreaterThan,
     // Other
     #[strum(props(regex = r#"^[a-zA-Z][\w\d]*"#))]
     Identifier,

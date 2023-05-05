@@ -8,18 +8,23 @@ use super::traits::StdConversions;
 pub struct Function {
     name: String,
     parameters: Vec<String>,
-    children: Vec<Expression>,
+    children: Option<Box<Expression>>,
     // Store an optional pointer, which will point directly to a function.
-    ptr: Option<u32>
+    ptr: Option<u32>,
 }
 
 impl Function {
-    pub fn new(name: String, parameters: Vec<String>, children: Vec<Expression>, ptr: Option<u32>) -> Function {
+    pub fn new(
+        name: String,
+        parameters: Vec<String>,
+        children: Option<Box<Expression>>,
+        ptr: Option<u32>,
+    ) -> Function {
         Function {
             name,
             parameters,
             children,
-            ptr
+            ptr,
         }
     }
 }
@@ -31,9 +36,11 @@ impl StdConversions for Function {
     }
 
     fn to_compound_string(&self) -> super::CompoundString {
-        super::CompoundString::from(
-            format!("Function: {} <{}>", self.name, self.to_integer().store)
-        )
+        super::CompoundString::from(format!(
+            "Function: {} <{}>",
+            self.name,
+            self.to_integer().store
+        ))
     }
 
     fn to_bool(&self) -> super::Bool {
@@ -41,13 +48,19 @@ impl StdConversions for Function {
     }
 }
 
-
 impl Callable for Function {
-    fn call(&self, runtime: &Runtime, parent: super::Scope, args: Vec<super::VariableStorage>) -> Option<super::VariableStorage> {
-
+    fn call(
+        &self,
+        runtime: &mut Runtime,
+        mut parent: super::Scope,
+        args: Vec<super::VariableStorage>,
+    ) -> Option<super::VariableStorage> {
         // If self.ptr is Some, call the function unsafely via the pointer.
         if let Some(ptr) = self.ptr {
-            let x = runtime.standard_functions.get(&ptr);
+            let x = {
+                runtime.standard_functions.get(&ptr).cloned()
+            };
+
             if let Some(func) = x {
                 return func.call(runtime, parent, args);
             } else {
@@ -55,21 +68,27 @@ impl Callable for Function {
             }
         } else {
             // Create a new scope
-            let mut scope = super::Scope::new();
-    
-            
+
             for (i, arg) in args.iter().enumerate() {
                 // Create a variable
                 let variable = super::Variable {
                     name: self.parameters[i].clone(),
                     kind: super::VariableType::Integer,
-                    value: Box::new(arg.clone())
+                    value: Box::new(arg.clone()),
                 };
+
                 // Assign the variable
-                scope.assign(variable);
+                parent.assign(variable);
             }
+
+            let fn_block = self.children.clone().unwrap_or_else(|| panic!());
+            let fn_inner_block = Box::into_inner(fn_block.clone());
+            runtime.evaluate_owned(
+                fn_inner_block
+            );
+
             // Create a variable storage
-            let storage = super::VariableStorage::Scope(scope);
+            let storage = super::VariableStorage::Scope(parent);
             // Return the storage
             Some(storage)
         }
