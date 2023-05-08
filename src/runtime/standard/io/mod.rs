@@ -19,3 +19,14 @@ impl Callable for Sleep {
         "sleep".to_string()
     }
 }
+
+pub struct Exit;
+impl Callable for Exit {
+    fn call(&self, _runtime: &mut Runtime, _parent: Scope, _args: Vec<VariableStorage>) -> Option<VariableStorage> {
+        std::process::exit(0);
+    }
+
+    fn name(&self) -> String {
+        "exit".to_string()
+    }
+}
