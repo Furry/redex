@@ -45,8 +45,8 @@ fn oneshot() {
     // }
     // "#;
     r#"
-    let y = net_get("https://google.com")
-    println(y)
+    let x = 10 * 9 - 8 + 7 / 6 % 5
+    println(x)
     "#;
     let tokens = lexer::parse_tokens(input);
     let mut parser = Parser::new(tokens);

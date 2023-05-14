@@ -1,4 +1,6 @@
-use crate::runtime::{Callable, Runtime, primitives::{VariableStorage, Scope, CompoundString}};
+use std::collections::HashMap;
+
+use crate::runtime::{Callable, Runtime, primitives::{VariableStorage, Scope, CompoundString, Integer}};
 use reqwest::blocking::get;
 
 pub struct NetGet;
@@ -12,12 +14,17 @@ impl Callable for NetGet {
         };
 
         let resp = get(&url.store).unwrap();
+        let status = &resp.status().as_u16();
         let body = resp.text().unwrap();
 
-        Some(VariableStorage::String(
-            CompoundString::from(
-                body
-            )
+        let mut temp: HashMap<String, VariableStorage> = HashMap::new();
+        temp.insert("status".to_string(), VariableStorage::Integer(Integer::from(*status)));
+        temp.insert("body".to_string(), VariableStorage::String(CompoundString::from(body)));
+
+        Some(VariableStorage::Dict(
+            crate::runtime::primitives::Dict {
+                store: temp
+            }
         ))
     }
 
