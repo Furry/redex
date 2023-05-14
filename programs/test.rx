@@ -1,6 +1,1 @@
-fn myFunction() {
-    let x = 55;
-}
-
-myFunction()
-print(x) // This will still print x as 55.
+print("henlo")

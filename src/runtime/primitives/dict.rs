@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use super::{traits::StdConversions, VariableStorage, CompoundString};
+use super::{ traits::StdConversions, VariableStorage };
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Dict {

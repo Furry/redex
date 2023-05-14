@@ -10,80 +10,22 @@ use crate::runtime::Runtime;
 
 pub mod runtime;
 pub mod debug;
-#[cfg(test)]
-pub mod tests;
+pub mod cli;
+pub mod examples;
 
-/*
-println("Enter text: ")
-let x = readln()
-let response = "you entered: " + x
-println(response)
-*/
+pub fn execute<T: Into<String>>(input: T) {
+    let input: String = input.into();
 
-fn main() {
-    // cli();
-    oneshot();
-}
-
-#[allow(dead_code)]
-fn oneshot() {
-    let input = 
-    // r#"
-    // let i = 0
-    // while (true) {
-    //     let a = i % 3
-    //     let b = i % 5
-    //     print(i)
-    //     if (a == 0) {
-    //         print("Fizz")
-    //     }
-    //     if (b == 0) {
-    //         print("Buzz")
-    //     }
-    //     println("")
-    //     let i = i + 1
-    // }
-    // "#;
-    r#"
-    let x = 10 * 9 - 8 + 7 / 6 % 5
-    println(x)
-    "#;
-    let tokens = lexer::parse_tokens(input);
-    let mut parser = Parser::new(tokens);
+    let tokens = lexer::parse_tokens(&input);
+    let mut parser = crate::Parser::new(tokens);
     let mut runtime = Runtime::new();
     runtime.link_std();
 
     let result = parser.parse();
-    let json = serde_json::to_string(&result).unwrap();
-    // println!("{}", json);
-    // println!("{:#?}", result);
-
     runtime.evaluate(&result);
-    // runtime.coredump();
 }
 
-fn cli() {
-    let mut runtime = Runtime::new();
-    runtime.link_std();
-
-    loop {
-        print!("redex> ");
-        std::io::stdout().flush().unwrap();
-
-        let mut input = String::new();
-        match std::io::stdin().read_line(&mut input) {
-            Ok(_) => {
-                if input.trim() == "exit" {
-                    break;
-                } else {
-                    let ast = Parser::new(
-                        lexer::parse_tokens(&input)
-                    ).parse();
-
-                    runtime.evaluate(&ast);
-                }
-            }
-            Err(error) => println!("Error reading input: {}", error),
-        }
-    }
+fn main() {
+    // Process the CLI, providing the menu.
+    cli::parse_cli();
 }
